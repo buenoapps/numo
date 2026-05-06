@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -12,17 +12,25 @@ import { StreakBar } from '@/components/streak-bar';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { generateProblem, type Problem } from '@/lib/problems';
+import { generateProblem, type Op, type Problem } from '@/lib/problems';
 
 const NEXT_DELAY_MS = 900;
 const WRONG_RESET_MS = 500;
 
+function parseOp(raw: string | string[] | undefined): Op {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return value === 'sub' ? 'sub' : 'add';
+}
+
 export default function PlayScreen() {
+  const params = useLocalSearchParams<{ op?: string }>();
+  const op = parseOp(params.op);
+
   const primary = useThemeColor({}, 'primary');
   const text = useThemeColor({}, 'text');
   const muted = useThemeColor({}, 'textMuted');
 
-  const [problem, setProblem] = useState<Problem>(() => generateProblem());
+  const [problem, setProblem] = useState<Problem>(() => generateProblem(op));
   const [streak, setStreak] = useState(0);
   const [wrongChoice, setWrongChoice] = useState<number | null>(null);
   const [correctRevealed, setCorrectRevealed] = useState(false);
@@ -37,11 +45,18 @@ export default function PlayScreen() {
     };
   }, []);
 
-  const nextProblem = useCallback(() => {
-    setProblem(generateProblem());
+  useEffect(() => {
+    setProblem(generateProblem(op));
     setCorrectRevealed(false);
     setWrongChoice(null);
-  }, []);
+    setStreak(0);
+  }, [op]);
+
+  const nextProblem = useCallback(() => {
+    setProblem(generateProblem(op));
+    setCorrectRevealed(false);
+    setWrongChoice(null);
+  }, [op]);
 
   const onAnswer = useCallback(
     (value: number) => {
@@ -68,6 +83,8 @@ export default function PlayScreen() {
   );
 
   const mood: NumoMood = correctRevealed ? 'happy' : wrongChoice !== null ? 'oops' : 'thinking';
+  const opSymbol = problem.op === 'add' ? '+' : '−';
+  const title = problem.op === 'add' ? 'Add!' : 'Take away!';
 
   return (
     <ThemedView style={styles.flex}>
@@ -87,18 +104,26 @@ export default function PlayScreen() {
           <View style={styles.back} />
         </View>
 
+        <Text style={[styles.modeLabel, { color: muted, fontFamily: Fonts?.rounded }]}>{title}</Text>
+
         <View style={styles.mascot}>
           <Numo mood={mood} size={140} />
         </View>
 
         <View style={styles.visualRow}>
-          <DotGroup count={problem.a} />
-          <Text style={[styles.plus, { color: muted, fontFamily: Fonts?.rounded }]}>+</Text>
-          <DotGroup count={problem.b} />
+          {problem.op === 'add' ? (
+            <>
+              <DotGroup count={problem.a} />
+              <Text style={[styles.opGlyph, { color: muted, fontFamily: Fonts?.rounded }]}>+</Text>
+              <DotGroup count={problem.b} />
+            </>
+          ) : (
+            <DotGroup count={problem.a} removed={problem.b} />
+          )}
         </View>
 
         <Text style={[styles.equation, { color: text, fontFamily: Fonts?.rounded }]}>
-          {problem.a} + {problem.b} = ?
+          {problem.a} {opSymbol} {problem.b} = ?
         </Text>
 
         <View style={styles.choices}>
@@ -162,6 +187,14 @@ const styles = StyleSheet.create({
     lineHeight: 40,
     fontWeight: '900',
   },
+  modeLabel: {
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginTop: 4,
+  },
   mascot: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -175,7 +208,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     gap: 12,
   },
-  plus: {
+  opGlyph: {
     fontSize: 36,
     fontWeight: '900',
   },
