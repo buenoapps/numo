@@ -5,15 +5,16 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FloatingNumbers } from '@/components/floating-numbers';
 import { Numo } from '@/components/numo';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { useSettings } from '@/lib/settings';
+import { t } from '@/lib/i18n';
 import type { Op } from '@/lib/problems';
+import { useSettings } from '@/lib/settings';
 
 export default function HomeScreen() {
   const primary = useThemeColor({}, 'primary');
@@ -22,6 +23,7 @@ export default function HomeScreen() {
   const accent = useThemeColor({}, 'accent');
   const card = useThemeColor({}, 'card');
   const shadow = useThemeColor({}, 'cardShadow');
+  const insets = useSafeAreaInsets();
 
   const { settings } = useSettings();
   const showBoth = settings.subtractionEnabled;
@@ -29,30 +31,33 @@ export default function HomeScreen() {
   return (
     <ThemedView style={styles.flex}>
       <FloatingNumbers />
-      <SafeAreaView style={styles.safe}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open settings"
-          onPress={() => router.push('/settings')}
-          style={[styles.gear, { backgroundColor: card, shadowColor: shadow }]}
-          hitSlop={8}
-        >
-          <Text style={[styles.gearGlyph, { color: primary, fontFamily: Fonts?.rounded }]}>⚙︎</Text>
-        </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('a11y.openSettings')}
+        onPress={() => router.push('/settings')}
+        style={[
+          styles.gear,
+          { backgroundColor: card, shadowColor: shadow, top: insets.top + 12 },
+        ]}
+        hitSlop={8}
+      >
+        <Text style={[styles.gearGlyph, { color: primary, fontFamily: Fonts?.rounded }]}>⚙︎</Text>
+      </Pressable>
 
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
         <View style={styles.content}>
           <Text style={[styles.title, { color: primary, fontFamily: Fonts?.rounded }]}>Numo</Text>
           <Text style={[styles.subtitle, { color: muted, fontFamily: Fonts?.rounded }]}>
-            Let&apos;s do math!
+            {t('subtitle')}
           </Text>
 
           <View style={styles.mascotWrap}>
-            <Numo mood="idle" size={220} />
+            <Numo mood="idle" size={200} />
           </View>
 
-          <View style={[styles.ctaStack, showBoth && styles.ctaStackDouble]}>
+          <View style={[styles.ctaRow, showBoth && styles.ctaRowDouble]}>
             <PlayCta
-              label={showBoth ? 'Add!' : "Let's Play!"}
+              label={showBoth ? t('add') : t('letsPlay')}
               symbol="+"
               op="add"
               bg={primary}
@@ -60,7 +65,7 @@ export default function HomeScreen() {
             />
             {showBoth ? (
               <PlayCta
-                label="Take away!"
+                label={t('subtract')}
                 symbol="−"
                 op="sub"
                 bg={accent}
@@ -69,6 +74,8 @@ export default function HomeScreen() {
               />
             ) : null}
           </View>
+
+          <NumbersCta primary={primary} card={card} shadow={shadow} />
         </View>
       </SafeAreaView>
     </ThemedView>
@@ -98,7 +105,7 @@ function PlayCta({
     <Animated.View style={animatedStyle}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Play ${label}`}
+        accessibilityLabel={t('a11y.play', { label })}
         onPressIn={() => {
           scale.value = withSpring(0.96, { damping: 12 });
         }}
@@ -115,12 +122,47 @@ function PlayCta({
   );
 }
 
+function NumbersCta({
+  primary,
+  card,
+  shadow,
+}: {
+  primary: string;
+  card: string;
+  shadow: string;
+}) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+  return (
+    <Animated.View style={[styles.numbersWrap, animatedStyle]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('a11y.play', { label: t('numbers') })}
+        onPressIn={() => {
+          scale.value = withSpring(0.96, { damping: 12 });
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, { damping: 12 });
+        }}
+        onPress={() => router.push('/numbers')}
+        style={[styles.numbersCta, { backgroundColor: card, shadowColor: shadow }]}
+      >
+        <Text style={[styles.numbersSymbol, { color: primary, fontFamily: Fonts?.rounded }]}>🔊</Text>
+        <Text style={[styles.numbersText, { color: primary, fontFamily: Fonts?.rounded }]}>
+          {t('numbers')}
+        </Text>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   safe: { flex: 1 },
   gear: {
     position: 'absolute',
-    top: 12,
     right: 16,
     width: 44,
     height: 44,
@@ -153,26 +195,25 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 22,
     fontWeight: '600',
-    marginBottom: 16,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   mascotWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 24,
+    marginVertical: 16,
   },
-  ctaStack: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  ctaStackDouble: {
+  ctaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
+    gap: 12,
   },
+  ctaRowDouble: {},
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 28,
     paddingVertical: 18,
     borderRadius: 32,
     gap: 12,
@@ -182,12 +223,35 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   ctaSymbol: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: '900',
     lineHeight: 32,
   },
   ctaText: {
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  numbersWrap: {
+    marginTop: 12,
+  },
+  numbersCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 28,
+    gap: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  numbersSymbol: {
     fontSize: 24,
+    lineHeight: 26,
+  },
+  numbersText: {
+    fontSize: 18,
     fontWeight: '900',
   },
 });
