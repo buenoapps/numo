@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnswerButton } from '@/components/answer-button';
@@ -12,7 +12,9 @@ import { StreakBar } from '@/components/streak-bar';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { t } from '@/lib/i18n';
 import { generateProblem, type Op, type Problem } from '@/lib/problems';
+import { useSuccessSound } from '@/lib/sounds';
 
 const NEXT_DELAY_MS = 900;
 const WRONG_RESET_MS = 500;
@@ -34,6 +36,8 @@ export default function PlayScreen() {
   const [streak, setStreak] = useState(0);
   const [wrongChoice, setWrongChoice] = useState<number | null>(null);
   const [correctRevealed, setCorrectRevealed] = useState(false);
+
+  const playSuccess = useSuccessSound();
 
   const nextTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrongTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -62,38 +66,36 @@ export default function PlayScreen() {
     (value: number) => {
       if (correctRevealed) return;
 
+      // Haptic on every press, regardless of correctness.
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+
       if (value === problem.answer) {
         setCorrectRevealed(true);
         setStreak((s) => s + 1);
-        if (Platform.OS === 'ios') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-        }
+        playSuccess();
         if (nextTimer.current) clearTimeout(nextTimer.current);
         nextTimer.current = setTimeout(nextProblem, NEXT_DELAY_MS);
       } else {
         setWrongChoice(value);
-        if (Platform.OS === 'ios') {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-        }
         if (wrongTimer.current) clearTimeout(wrongTimer.current);
         wrongTimer.current = setTimeout(() => setWrongChoice(null), WRONG_RESET_MS);
       }
     },
-    [correctRevealed, problem.answer, nextProblem],
+    [correctRevealed, problem.answer, nextProblem, playSuccess],
   );
 
   const mood: NumoMood = correctRevealed ? 'happy' : wrongChoice !== null ? 'oops' : 'thinking';
   const opSymbol = problem.op === 'add' ? '+' : '−';
-  const title = problem.op === 'add' ? 'Add!' : 'Take away!';
+  const title = problem.op === 'add' ? t('add') : t('subtract');
 
   return (
     <ThemedView style={styles.flex}>
       <FloatingNumbers count={7} />
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
         <View style={styles.header}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Go home"
+            accessibilityLabel={t('a11y.goHome')}
             onPress={() => router.back()}
             style={styles.back}
             hitSlop={12}

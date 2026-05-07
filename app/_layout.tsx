@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import '@/lib/i18n';
 import { SettingsProvider } from '@/lib/settings';
 
 export default function RootLayout() {
@@ -15,6 +16,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="play" options={{ animation: 'fade' }} />
+          <Stack.Screen name="numbers" options={{ animation: 'fade' }} />
           <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
         </Stack>
         <StatusBar style="auto" />

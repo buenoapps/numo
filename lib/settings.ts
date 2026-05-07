@@ -5,16 +5,19 @@ const STORAGE_KEY = 'numo.settings.v1';
 
 export type Settings = {
   subtractionEnabled: boolean;
+  soundsEnabled: boolean;
 };
 
 const DEFAULTS: Settings = {
   subtractionEnabled: false,
+  soundsEnabled: true,
 };
 
 type SettingsContextValue = {
   settings: Settings;
   hydrated: boolean;
   setSubtractionEnabled: (enabled: boolean) => void;
+  setSoundsEnabled: (enabled: boolean) => void;
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -55,6 +58,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     settings,
     hydrated,
     setSubtractionEnabled: (enabled) => persist({ ...settings, subtractionEnabled: enabled }),
+    setSoundsEnabled: (enabled) => persist({ ...settings, soundsEnabled: enabled }),
   };
 
   return createElement(SettingsContext.Provider, { value }, children);

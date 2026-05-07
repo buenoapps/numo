@@ -3,6 +3,7 @@ import Animated, { ZoomIn } from 'react-native-reanimated';
 
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { t } from '@/lib/i18n';
 
 type Props = {
   streak: number;
@@ -34,7 +35,7 @@ export function StreakBar({ streak, max = 5 }: Props) {
         );
       })}
       {streak >= max ? (
-        <Text style={[styles.label, { color: text, fontFamily: Fonts?.rounded }]}>On fire!</Text>
+        <Text style={[styles.label, { color: text, fontFamily: Fonts?.rounded }]}>{t('onFire')}</Text>
       ) : null}
     </View>
   );

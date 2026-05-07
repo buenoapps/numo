@@ -11,6 +11,7 @@ import Animated, {
 
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { t } from '@/lib/i18n';
 
 export type AnswerState = 'idle' | 'correct' | 'wrong';
 
@@ -61,7 +62,7 @@ export function AnswerButton({ value, state, disabled, onPress }: Props) {
     <Animated.View style={[styles.wrap, animatedStyle]}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Answer ${value}`}
+        accessibilityLabel={t('a11y.answer', { value })}
         disabled={disabled}
         onPressIn={() => {
           scale.value = withSpring(0.94, { damping: 12 });
