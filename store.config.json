@@ -1,0 +1,113 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "copyright": "© 2026 buenoapps",
+    "info": {
+      "en-US": {
+        "title": "Numo — Math for Kids",
+        "subtitle": "Add, subtract, learn",
+        "description": "Numo is a playful math app for early learners. Practice addition and subtraction with results from 0 to 10, hear the numbers 1 to 10 spoken aloud in your language, and earn streak stars for every correct answer. Big rounded buttons, gentle feedback, and a friendly purple monster mascot make first math feel like play.\n\nFeatures:\n• Addition and parent-controlled subtraction with sums up to 10\n• A Numbers screen that reads each digit aloud\n• Localized in 7 languages, auto-detected from your device\n• Streak stars and a celebrating mascot for every correct answer\n• Designed for tiny fingers: big buttons, soft purple palette, no ads",
+        "keywords": [
+          "math",
+          "kids",
+          "addition",
+          "subtraction",
+          "preschool",
+          "learn",
+          "numbers",
+          "education"
+        ]
+      },
+      "de-DE": {
+        "title": "Numo — Mathe für Kinder",
+        "subtitle": "Plus, minus, lernen",
+        "description": "Numo ist eine spielerische Mathe-App für die ersten Schritte. Übe Plus- und Minus-Aufgaben mit Ergebnissen bis 10, höre die Zahlen 1 bis 10 in deiner Sprache und sammle Sterne für jede richtige Antwort. Große runde Buttons, freundliches Feedback und ein lila Monster machen die ersten Rechenaufgaben zum Spiel.\n\nFunktionen:\n• Plus und (von Erwachsenen freigeschaltetes) Minus mit Ergebnissen bis 10\n• Zahlenseite, die jede Ziffer vorliest\n• In 7 Sprachen übersetzt, automatisch je nach Systemsprache\n• Sterne und ein jubelndes Maskottchen für jede richtige Antwort\n• Für kleine Finger: große Buttons, sanftes Lila, keine Werbung",
+        "keywords": [
+          "mathe",
+          "kinder",
+          "plus",
+          "minus",
+          "zahlen",
+          "lernen",
+          "vorschule",
+          "rechnen"
+        ]
+      },
+      "es-ES": {
+        "title": "Numo — Mate para niños",
+        "subtitle": "Suma, resta, aprende",
+        "description": "Numo es una aplicación de matemáticas alegre para los más pequeños. Practica sumas y restas con resultados de 0 a 10, escucha los números del 1 al 10 en tu idioma y gana estrellas por cada respuesta correcta. Botones grandes, comentarios amables y un simpático monstruo morado convierten las primeras matemáticas en un juego.\n\nCaracterísticas:\n• Suma y resta (activable por adultos) con resultados hasta 10\n• Pantalla de números que lee cada cifra en voz alta\n• Traducida a 7 idiomas, según el idioma del sistema\n• Estrellas y un mascota que celebra cada acierto\n• Pensada para dedos pequeños: botones grandes, paleta morada suave, sin anuncios",
+        "keywords": [
+          "matemáticas",
+          "niños",
+          "sumar",
+          "restar",
+          "números",
+          "aprender",
+          "preescolar",
+          "educación"
+        ]
+      },
+      "fr-FR": {
+        "title": "Numo — Maths pour enfants",
+        "subtitle": "Ajouter, retirer, apprendre",
+        "description": "Numo est une application de maths joyeuse pour les tout-petits. Pratique l’addition et la soustraction avec des résultats de 0 à 10, écoute les nombres de 1 à 10 dans ta langue et gagne des étoiles à chaque bonne réponse. Grands boutons arrondis, retour bienveillant et un monstre violet sympa font des premières maths un vrai jeu.\n\nFonctionnalités :\n• Addition et soustraction (activable par les adultes) avec des résultats jusqu’à 10\n• Une page « Chiffres » qui lit chaque nombre à voix haute\n• Localisée en 7 langues, détectées automatiquement\n• Étoiles et un mascotte qui fête chaque bonne réponse\n• Conçue pour les petits doigts : grands boutons, palette violette douce, sans publicités",
+        "keywords": [
+          "maths",
+          "enfants",
+          "addition",
+          "soustraction",
+          "nombres",
+          "apprendre",
+          "maternelle",
+          "éducation"
+        ]
+      },
+      "it-IT": {
+        "title": "Numo — Matematica bambini",
+        "subtitle": "Somma, sottrai, impara",
+        "description": "Numo è un’app di matematica giocosa per i più piccoli. Esercitati con somme e sottrazioni con risultati da 0 a 10, ascolta i numeri da 1 a 10 nella tua lingua e guadagna stelle per ogni risposta giusta. Pulsanti grandi e arrotondati, feedback gentile e un simpatico mostro viola rendono la prima matematica un gioco.\n\nCaratteristiche:\n• Somma e sottrazione (attivabile dagli adulti) con risultati fino a 10\n• Pagina dei numeri che legge ad alta voce ogni cifra\n• Tradotta in 7 lingue, in base alla lingua di sistema\n• Stelle e una mascotte che festeggia ogni risposta giusta\n• Progettata per le dita piccole: pulsanti grandi, palette viola morbida, senza pubblicità",
+        "keywords": [
+          "matematica",
+          "bambini",
+          "somma",
+          "sottrazione",
+          "numeri",
+          "imparare",
+          "scuola",
+          "educazione"
+        ]
+      },
+      "zh-Hans": {
+        "title": "Numo — 儿童数学",
+        "subtitle": "加法、减法、学习",
+        "description": "Numo 是一款适合幼儿的趣味数学应用。练习结果在 0 到 10 之间的加法和减法，用母语听 1 到 10 的发音，每答对一题就能获得星星奖励。圆润的大按钮、温和的反馈，加上友好的紫色怪兽伙伴，让最初的数学就像玩游戏一样。\n\n功能：\n• 加法以及（可由家长开启的）减法，结果在 10 以内\n• 数字页面会朗读每个数字\n• 翻译为 7 种语言，根据系统语言自动选择\n• 答对就有星星奖励，吉祥物会一起庆祝\n• 专为小手设计：大按钮、柔和紫色配色、无广告",
+        "keywords": [
+          "数学",
+          "儿童",
+          "加法",
+          "减法",
+          "数字",
+          "学习",
+          "学前",
+          "教育"
+        ]
+      },
+      "ja-JP": {
+        "title": "Numo — こどものさんすう",
+        "subtitle": "たす、ひく、まなぶ",
+        "description": "Numo は、ちいさなおこさまむけのたのしいさんすうアプリです。0〜10 のたしざんとひきざんをれんしゅうし、1 から 10 のすうじをぼこくごでききましょう。せいかいするとほしがふえていきます。おおきなまるいボタン、やさしいフィードバック、そしてむらさきいろのモンスター「Numo」が、はじめてのさんすうをゲームのようにします。\n\nとくちょう：\n• たしざんと（おとなのかたがオンにできる）ひきざん。こたえは 10 まで\n• すうじをよみあげてくれる「すうじ」ページ\n• 7 げんごにたいおう、システムげんごでじどうせんたく\n• せいかいするとほしがふえ、マスコットがいっしょによろこびます\n• ちいさなてのおこさまにあわせた、おおきなボタン、やさしいむらさき、こうこくなし",
+        "keywords": [
+          "さんすう",
+          "こども",
+          "たしざん",
+          "ひきざん",
+          "すうじ",
+          "がくしゅう",
+          "ようちえん",
+          "きょういく"
+        ]
+      }
+    }
+  }
+}
