@@ -5,10 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { t } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
 
 export default function SettingsScreen() {
-  const { settings, hydrated, setSubtractionEnabled } = useSettings();
+  const { settings, hydrated, setSubtractionEnabled, setSoundsEnabled } = useSettings();
   const text = useThemeColor({}, 'text');
   const muted = useThemeColor({}, 'textMuted');
   const primary = useThemeColor({}, 'primary');
@@ -17,37 +18,39 @@ export default function SettingsScreen() {
 
   return (
     <ThemedView style={styles.flex}>
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
         <View style={styles.header}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Close settings"
+            accessibilityLabel={t('a11y.closeSettings')}
             onPress={() => router.back()}
             style={styles.closeBtn}
             hitSlop={12}
           >
             <Text style={[styles.closeGlyph, { color: primary, fontFamily: Fonts?.rounded }]}>×</Text>
           </Pressable>
-          <Text style={[styles.title, { color: text, fontFamily: Fonts?.rounded }]}>Settings</Text>
+          <Text style={[styles.title, { color: text, fontFamily: Fonts?.rounded }]}>
+            {t('settings')}
+          </Text>
           <View style={styles.closeBtn} />
         </View>
 
         <Text style={[styles.parentNote, { color: muted, fontFamily: Fonts?.rounded }]}>
-          For grown-ups
+          {t('forGrownUps')}
         </Text>
 
         <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
           <View style={styles.row}>
             <View style={styles.rowText}>
               <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
-                Subtraction
+                {t('subtractionLabel')}
               </Text>
               <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
-                Add minus problems with results 0–10.
+                {t('subtractionDesc')}
               </Text>
             </View>
             <Switch
-              accessibilityLabel="Enable subtraction"
+              accessibilityLabel={t('a11y.enableSubtraction')}
               value={settings.subtractionEnabled}
               onValueChange={setSubtractionEnabled}
               disabled={!hydrated}
@@ -57,12 +60,33 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
+                {t('soundsLabel')}
+              </Text>
+              <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
+                {t('soundsDesc')}
+              </Text>
+            </View>
+            <Switch
+              accessibilityLabel={t('a11y.enableSounds')}
+              value={settings.soundsEnabled}
+              onValueChange={setSoundsEnabled}
+              disabled={!hydrated}
+              trackColor={{ true: primary, false: '#D6D2EA' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        </View>
+
         <View style={[styles.card, styles.comingSoon, { backgroundColor: card, shadowColor: shadow }]}>
           <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
-            More levels coming soon
+            {t('comingSoon')}
           </Text>
           <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
-            We&apos;re working on bigger numbers, multiplication, and more games for Numo.
+            {t('comingSoonDesc')}
           </Text>
         </View>
       </SafeAreaView>
