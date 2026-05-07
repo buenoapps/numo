@@ -111,6 +111,17 @@ Both flags are persisted in AsyncStorage under the key `numo.settings.v1` via `l
 
 The Numo character is currently a styled-View placeholder (purple body, yellow-star antennae, white eyes, "+" belly) so the app ships without external assets. To swap in real art, edit `components/numo.tsx` only — the rest of the app uses the component through its `mood` and `size` props and doesn't care what's inside.
 
+## App Store metadata
+
+The App Store listing (title, subtitle, description, keywords) lives in `store.config.json` at the repo root and is managed via [EAS Metadata](https://docs.expo.dev/eas/metadata/). Same 7 locales as the in-app UI. `eas.json` points at it under `submit.production.ios.metadataPath`.
+
+```bash
+eas metadata:push --profile production    # upload local file to App Store Connect
+eas metadata:pull --profile production    # download current ASC values into the file
+```
+
+Before the first push you'll also need: an App Store Connect API key (via `eas credentials`), an `ascAppId` in `eas.json`, and a real privacy policy / support URL added to each `info` block.
+
 ## Testing & CI
 
 ```bash

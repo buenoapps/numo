@@ -57,6 +57,8 @@ Other commands:
 
 `.github/workflows/ci.yml` — Lint, typecheck, test, build:web on push to `main` and PRs against `main`.
 
+`store.config.json` — App Store Connect metadata (title, subtitle, description, keywords) for the same 7 locales the app supports. Pushed via `eas metadata:push`. Referenced from `eas.json` under `submit.production.ios.metadataPath`. Before the first push, the user has to add `ascAppId` and real `privacyPolicyUrl` / `supportUrl` values.
+
 ## Conventions
 
 - TypeScript strict. Explicit prop types. No `any`.
