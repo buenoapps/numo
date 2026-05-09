@@ -4,6 +4,9 @@ import * as Localization from 'expo-localization';
 export const SUPPORTED_LOCALES = ['en', 'de', 'es', 'fr', 'it', 'zh', 'ja'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
+/** Override values the user can pick from the Settings screen. */
+export type LocaleOverride = 'device' | 'en' | 'de';
+
 const translations = {
   en: {
     subtitle: "Let's do math!",
@@ -17,10 +20,9 @@ const translations = {
     subtractionLabel: 'Subtraction',
     subtractionDesc: 'Add minus problems with results 0–10.',
     soundsLabel: 'Sounds',
-    soundsDesc: 'Play a happy chime when an answer is correct.',
-    comingSoon: 'More levels coming soon',
-    comingSoonDesc:
-      "We're working on bigger numbers, multiplication, and more games for Numo.",
+    soundsDesc: 'Play a chime and read problems aloud.',
+    language: 'Language',
+    languageSystem: 'System',
     numbersTitle: 'Tap a number to hear it!',
     a11y: {
       openSettings: 'Open settings',
@@ -28,6 +30,7 @@ const translations = {
       goHome: 'Go home',
       enableSubtraction: 'Enable subtraction',
       enableSounds: 'Enable sounds',
+      pickLanguage: 'Pick language: {{label}}',
       answer: 'Answer {{value}}',
       play: 'Play {{label}}',
       speakNumber: 'Speak number {{value}}',
@@ -45,10 +48,9 @@ const translations = {
     subtractionLabel: 'Subtraktion',
     subtractionDesc: 'Minusaufgaben mit Ergebnissen von 0 bis 10.',
     soundsLabel: 'Töne',
-    soundsDesc: 'Bei richtiger Antwort einen fröhlichen Klang abspielen.',
-    comingSoon: 'Bald gibt es mehr Levels',
-    comingSoonDesc:
-      'Wir arbeiten an größeren Zahlen, dem Einmaleins und weiteren Spielen für Numo.',
+    soundsDesc: 'Klang abspielen und Aufgaben vorlesen.',
+    language: 'Sprache',
+    languageSystem: 'Gerät',
     numbersTitle: 'Tippe eine Zahl, um sie zu hören!',
     a11y: {
       openSettings: 'Einstellungen öffnen',
@@ -56,6 +58,7 @@ const translations = {
       goHome: 'Zurück zur Startseite',
       enableSubtraction: 'Subtraktion aktivieren',
       enableSounds: 'Töne aktivieren',
+      pickLanguage: 'Sprache wählen: {{label}}',
       answer: 'Antwort {{value}}',
       play: '{{label}} spielen',
       speakNumber: 'Zahl {{value}} sprechen',
@@ -73,10 +76,9 @@ const translations = {
     subtractionLabel: 'Resta',
     subtractionDesc: 'Añadir problemas de resta con resultados entre 0 y 10.',
     soundsLabel: 'Sonidos',
-    soundsDesc: 'Reproducir un sonido alegre cuando la respuesta es correcta.',
-    comingSoon: 'Más niveles próximamente',
-    comingSoonDesc:
-      'Estamos preparando números más grandes, multiplicación y más juegos para Numo.',
+    soundsDesc: 'Reproducir un sonido y leer las preguntas en voz alta.',
+    language: 'Idioma',
+    languageSystem: 'Sistema',
     numbersTitle: '¡Toca un número para escucharlo!',
     a11y: {
       openSettings: 'Abrir ajustes',
@@ -84,37 +86,38 @@ const translations = {
       goHome: 'Ir al inicio',
       enableSubtraction: 'Activar resta',
       enableSounds: 'Activar sonidos',
+      pickLanguage: 'Elegir idioma: {{label}}',
       answer: 'Respuesta {{value}}',
       play: 'Jugar {{label}}',
       speakNumber: 'Decir el número {{value}}',
     },
   },
   fr: {
-    subtitle: 'Faisons des maths !',
-    letsPlay: 'On joue !',
-    add: 'Plus !',
-    subtract: 'Moins !',
-    numbers: 'Chiffres !',
-    onFire: 'Super !',
+    subtitle: 'Faisons des maths !',
+    letsPlay: 'On joue !',
+    add: 'Plus !',
+    subtract: 'Moins !',
+    numbers: 'Chiffres !',
+    onFire: 'Super !',
     settings: 'Réglages',
     forGrownUps: 'Pour les adultes',
     subtractionLabel: 'Soustraction',
     subtractionDesc:
-      'Ajouter des soustractions avec des résultats entre 0 et 10.',
+      'Ajouter des soustractions avec des résultats entre 0 et 10.',
     soundsLabel: 'Sons',
-    soundsDesc: 'Jouer un son joyeux quand la réponse est correcte.',
-    comingSoon: 'Plus de niveaux bientôt',
-    comingSoonDesc:
-      'Nous préparons de plus grands nombres, la multiplication et d’autres jeux pour Numo.',
-    numbersTitle: 'Appuie sur un nombre pour l’entendre !',
+    soundsDesc: 'Jouer un son et lire les questions à voix haute.',
+    language: 'Langue',
+    languageSystem: 'Système',
+    numbersTitle: 'Appuie sur un nombre pour l’entendre !',
     a11y: {
       openSettings: 'Ouvrir les réglages',
       closeSettings: 'Fermer les réglages',
       goHome: 'Retour à l’accueil',
       enableSubtraction: 'Activer la soustraction',
       enableSounds: 'Activer les sons',
+      pickLanguage: 'Choisir la langue : {{label}}',
       answer: 'Réponse {{value}}',
-      play: 'Jouer : {{label}}',
+      play: 'Jouer : {{label}}',
       speakNumber: 'Dire le nombre {{value}}',
     },
   },
@@ -130,10 +133,9 @@ const translations = {
     subtractionLabel: 'Sottrazione',
     subtractionDesc: 'Aggiungi problemi di sottrazione con risultati da 0 a 10.',
     soundsLabel: 'Suoni',
-    soundsDesc: 'Riproduci un suono allegro quando la risposta è corretta.',
-    comingSoon: 'Altri livelli in arrivo',
-    comingSoonDesc:
-      'Stiamo lavorando a numeri più grandi, alla moltiplicazione e ad altri giochi per Numo.',
+    soundsDesc: 'Riprodurre un suono e leggere le domande ad alta voce.',
+    language: 'Lingua',
+    languageSystem: 'Sistema',
     numbersTitle: 'Tocca un numero per sentirlo!',
     a11y: {
       openSettings: 'Apri impostazioni',
@@ -141,6 +143,7 @@ const translations = {
       goHome: 'Torna alla home',
       enableSubtraction: 'Attiva sottrazione',
       enableSounds: 'Attiva suoni',
+      pickLanguage: 'Scegli lingua: {{label}}',
       answer: 'Risposta {{value}}',
       play: 'Gioca a {{label}}',
       speakNumber: 'Pronuncia il numero {{value}}',
@@ -158,9 +161,9 @@ const translations = {
     subtractionLabel: '减法',
     subtractionDesc: '添加结果在 0 到 10 之间的减法题。',
     soundsLabel: '声音',
-    soundsDesc: '答对时播放欢快的声音。',
-    comingSoon: '更多关卡即将推出',
-    comingSoonDesc: '我们正在为 Numo 准备更大的数字、乘法和更多游戏。',
+    soundsDesc: '播放音效并朗读题目。',
+    language: '语言',
+    languageSystem: '系统',
     numbersTitle: '点击数字听一听！',
     a11y: {
       openSettings: '打开设置',
@@ -168,6 +171,7 @@ const translations = {
       goHome: '回到首页',
       enableSubtraction: '启用减法',
       enableSounds: '启用声音',
+      pickLanguage: '选择语言：{{label}}',
       answer: '答案 {{value}}',
       play: '玩{{label}}',
       speakNumber: '读出数字 {{value}}',
@@ -185,10 +189,9 @@ const translations = {
     subtractionLabel: 'ひきざん',
     subtractionDesc: '0〜10 のひきざんもんだいをついかします。',
     soundsLabel: 'おと',
-    soundsDesc: 'せいかいのときにたのしいおとをならします。',
-    comingSoon: 'もっとレベルがふえます',
-    comingSoonDesc:
-      'もっとおおきなかず、かけざん、ほかのゲームをじゅんびちゅうです。',
+    soundsDesc: 'おとをならし、もんだいをよみあげます。',
+    language: 'げんご',
+    languageSystem: 'システム',
     numbersTitle: 'すうじをタップしてきこう！',
     a11y: {
       openSettings: 'せっていをひらく',
@@ -196,6 +199,7 @@ const translations = {
       goHome: 'ホームにもどる',
       enableSubtraction: 'ひきざんをゆうこうにする',
       enableSounds: 'おとをゆうこうにする',
+      pickLanguage: 'げんごをえらぶ：{{label}}',
       answer: 'こたえ {{value}}',
       play: '{{label}} であそぶ',
       speakNumber: 'すうじ {{value}} をよむ',
@@ -203,7 +207,7 @@ const translations = {
   },
 };
 
-function detectLocale(): SupportedLocale {
+export function getDeviceLocale(): SupportedLocale {
   const locales = Localization.getLocales();
   for (const l of locales) {
     const code = (l.languageCode ?? '').toLowerCase();
@@ -217,7 +221,17 @@ function detectLocale(): SupportedLocale {
 export const i18n = new I18n(translations);
 i18n.enableFallback = true;
 i18n.defaultLocale = 'en';
-i18n.locale = detectLocale();
+i18n.locale = getDeviceLocale();
+
+/**
+ * Apply the active locale based on the user's override choice.
+ * Idempotent — safe to call during render.
+ */
+export function applyLocale(override: LocaleOverride): SupportedLocale {
+  const next: SupportedLocale = override === 'device' ? getDeviceLocale() : override;
+  if (i18n.locale !== next) i18n.locale = next;
+  return next;
+}
 
 export function t(key: string, options?: Record<string, unknown>): string {
   return i18n.t(key, options);

@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,11 +13,12 @@ import { StreakBar } from '@/components/streak-bar';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { t } from '@/lib/i18n';
+import { getSpeechLocale, t } from '@/lib/i18n';
 import { generateProblem, type Op, type Problem } from '@/lib/problems';
+import { useSettings } from '@/lib/settings';
 import { useSuccessSound } from '@/lib/sounds';
 
-const NEXT_DELAY_MS = 900;
+const NEXT_DELAY_MS = 1800;
 const WRONG_RESET_MS = 500;
 
 function parseOp(raw: string | string[] | undefined): Op {
@@ -37,15 +39,33 @@ export default function PlayScreen() {
   const [wrongChoice, setWrongChoice] = useState<number | null>(null);
   const [correctRevealed, setCorrectRevealed] = useState(false);
 
+  const { settings } = useSettings();
   const playSuccess = useSuccessSound();
 
   const nextTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrongTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const soundsEnabledRef = useRef(settings.soundsEnabled);
+  soundsEnabledRef.current = settings.soundsEnabled;
+
+  const speak = useCallback((phrase: string) => {
+    if (!soundsEnabledRef.current) return;
+    try {
+      Speech.stop();
+      Speech.speak(phrase, { language: getSpeechLocale() });
+    } catch {
+      // No TTS backend (e.g., web on some browsers) — silent fallback.
+    }
+  }, []);
 
   useEffect(() => {
     return () => {
       if (nextTimer.current) clearTimeout(nextTimer.current);
       if (wrongTimer.current) clearTimeout(wrongTimer.current);
+      try {
+        Speech.stop();
+      } catch {
+        // ignore
+      }
     };
   }, []);
 
@@ -55,6 +75,13 @@ export default function PlayScreen() {
     setWrongChoice(null);
     setStreak(0);
   }, [op]);
+
+  // Read each new problem aloud when it appears.
+  useEffect(() => {
+    if (correctRevealed) return;
+    const opWord = problem.op === 'add' ? '+' : '−';
+    speak(`${problem.a} ${opWord} ${problem.b}`);
+  }, [problem, correctRevealed, speak]);
 
   const nextProblem = useCallback(() => {
     setProblem(generateProblem(op));
@@ -73,6 +100,8 @@ export default function PlayScreen() {
         setCorrectRevealed(true);
         setStreak((s) => s + 1);
         playSuccess();
+        const opWord = problem.op === 'add' ? '+' : '−';
+        speak(`${problem.a} ${opWord} ${problem.b} = ${problem.answer}`);
         if (nextTimer.current) clearTimeout(nextTimer.current);
         nextTimer.current = setTimeout(nextProblem, NEXT_DELAY_MS);
       } else {
@@ -81,7 +110,7 @@ export default function PlayScreen() {
         wrongTimer.current = setTimeout(() => setWrongChoice(null), WRONG_RESET_MS);
       }
     },
-    [correctRevealed, problem.answer, nextProblem, playSuccess],
+    [correctRevealed, problem, nextProblem, playSuccess, speak],
   );
 
   const mood: NumoMood = correctRevealed ? 'happy' : wrongChoice !== null ? 'oops' : 'thinking';

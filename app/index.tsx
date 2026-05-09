@@ -13,8 +13,17 @@ import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { t } from '@/lib/i18n';
-import type { Op } from '@/lib/problems';
 import { useSettings } from '@/lib/settings';
+
+type CtaSpec = {
+  key: 'numbers' | 'add' | 'sub';
+  emoji: string;
+  label: string;
+  bg: string;
+  fg: string;
+  shadowColor: string;
+  onPress: () => void;
+};
 
 export default function HomeScreen() {
   const primary = useThemeColor({}, 'primary');
@@ -23,10 +32,42 @@ export default function HomeScreen() {
   const accent = useThemeColor({}, 'accent');
   const card = useThemeColor({}, 'card');
   const shadow = useThemeColor({}, 'cardShadow');
+  const text = useThemeColor({}, 'text');
   const insets = useSafeAreaInsets();
 
   const { settings } = useSettings();
-  const showBoth = settings.subtractionEnabled;
+
+  const ctas: CtaSpec[] = [
+    {
+      key: 'numbers',
+      emoji: '🔊',
+      label: t('numbers'),
+      bg: card,
+      fg: primary,
+      shadowColor: shadow,
+      onPress: () => router.push('/numbers'),
+    },
+    {
+      key: 'add',
+      emoji: '➕',
+      label: t('add'),
+      bg: primary,
+      fg: '#FFFFFF',
+      shadowColor: primaryDeep ?? shadow,
+      onPress: () => router.push({ pathname: '/play', params: { op: 'add' } }),
+    },
+  ];
+  if (settings.subtractionEnabled) {
+    ctas.push({
+      key: 'sub',
+      emoji: '➖',
+      label: t('subtract'),
+      bg: accent,
+      fg: text,
+      shadowColor: primaryDeep ?? shadow,
+      onPress: () => router.push({ pathname: '/play', params: { op: 'sub' } }),
+    });
+  }
 
   return (
     <ThemedView style={styles.flex}>
@@ -52,57 +93,34 @@ export default function HomeScreen() {
           </Text>
 
           <View style={styles.mascotWrap}>
-            <Numo mood="idle" size={200} />
+            <Numo mood="idle" size={180} />
           </View>
 
-          <View style={[styles.ctaRow, showBoth && styles.ctaRowDouble]}>
-            <PlayCta
-              label={showBoth ? t('add') : t('letsPlay')}
-              symbol="+"
-              op="add"
-              bg={primary}
-              shadowColor={primaryDeep ?? shadow}
-            />
-            {showBoth ? (
-              <PlayCta
-                label={t('subtract')}
-                symbol="−"
-                op="sub"
-                bg={accent}
-                fg={primaryDeep ?? '#1F1B2E'}
-                shadowColor={primaryDeep ?? shadow}
-              />
-            ) : null}
+          <View style={styles.ctaStack}>
+            {ctas.map(({ key, ...rest }) => (
+              <Cta key={key} {...rest} />
+            ))}
           </View>
-
-          <NumbersCta primary={primary} card={card} shadow={shadow} />
         </View>
       </SafeAreaView>
     </ThemedView>
   );
 }
 
-function PlayCta({
+function Cta({
+  emoji,
   label,
-  symbol,
-  op,
   bg,
-  fg = '#FFFFFF',
+  fg,
   shadowColor,
-}: {
-  label: string;
-  symbol: string;
-  op: Op;
-  bg: string;
-  fg?: string;
-  shadowColor: string;
-}) {
+  onPress,
+}: Pick<CtaSpec, 'emoji' | 'label' | 'bg' | 'fg' | 'shadowColor' | 'onPress'>) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View style={[styles.ctaWrap, animatedStyle]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('a11y.play', { label })}
@@ -112,51 +130,18 @@ function PlayCta({
         onPressOut={() => {
           scale.value = withSpring(1, { damping: 12 });
         }}
-        onPress={() => router.push({ pathname: '/play', params: { op } })}
+        onPress={onPress}
         style={[styles.cta, { backgroundColor: bg, shadowColor }]}
       >
-        <Text style={[styles.ctaSymbol, { color: fg, fontFamily: Fonts?.rounded }]}>{symbol}</Text>
+        <Text style={[styles.ctaEmoji, { fontFamily: Fonts?.rounded }]}>{emoji}</Text>
         <Text style={[styles.ctaText, { color: fg, fontFamily: Fonts?.rounded }]}>{label}</Text>
       </Pressable>
     </Animated.View>
   );
 }
 
-function NumbersCta({
-  primary,
-  card,
-  shadow,
-}: {
-  primary: string;
-  card: string;
-  shadow: string;
-}) {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-  return (
-    <Animated.View style={[styles.numbersWrap, animatedStyle]}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('a11y.play', { label: t('numbers') })}
-        onPressIn={() => {
-          scale.value = withSpring(0.96, { damping: 12 });
-        }}
-        onPressOut={() => {
-          scale.value = withSpring(1, { damping: 12 });
-        }}
-        onPress={() => router.push('/numbers')}
-        style={[styles.numbersCta, { backgroundColor: card, shadowColor: shadow }]}
-      >
-        <Text style={[styles.numbersSymbol, { color: primary, fontFamily: Fonts?.rounded }]}>🔊</Text>
-        <Text style={[styles.numbersText, { color: primary, fontFamily: Fonts?.rounded }]}>
-          {t('numbers')}
-        </Text>
-      </Pressable>
-    </Animated.View>
-  );
-}
+const CTA_HEIGHT = 64;
+const CTA_WIDTH = 280;
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
@@ -185,7 +170,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
-    gap: 12,
+    gap: 8,
   },
   title: {
     fontSize: 64,
@@ -201,57 +186,35 @@ const styles = StyleSheet.create({
   mascotWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 16,
+    marginVertical: 12,
   },
-  ctaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+  ctaStack: {
+    alignItems: 'center',
     gap: 12,
   },
-  ctaRowDouble: {},
+  ctaWrap: {
+    width: CTA_WIDTH,
+  },
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 28,
-    paddingVertical: 18,
-    borderRadius: 32,
+    justifyContent: 'center',
+    width: CTA_WIDTH,
+    height: CTA_HEIGHT,
+    borderRadius: CTA_HEIGHT / 2,
+    paddingHorizontal: 24,
     gap: 12,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  ctaSymbol: {
-    fontSize: 30,
-    fontWeight: '900',
+  ctaEmoji: {
+    fontSize: 28,
     lineHeight: 32,
   },
   ctaText: {
     fontSize: 22,
-    fontWeight: '900',
-  },
-  numbersWrap: {
-    marginTop: 12,
-  },
-  numbersCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 28,
-    gap: 10,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  numbersSymbol: {
-    fontSize: 24,
-    lineHeight: 26,
-  },
-  numbersText: {
-    fontSize: 18,
     fontWeight: '900',
   },
 });
