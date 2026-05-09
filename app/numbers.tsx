@@ -15,7 +15,7 @@ import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { getSpeechLocale, t } from '@/lib/i18n';
 
-const NUMBERS = Array.from({ length: 10 }, (_, i) => i + 1);
+const NUMBERS = Array.from({ length: 11 }, (_, i) => i);
 
 export default function NumbersScreen() {
   const primary = useThemeColor({}, 'primary');
@@ -125,23 +125,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   tileWrap: {
-    width: '40%',
+    width: '25%',
     aspectRatio: 1,
-    padding: 8,
+    padding: 6,
   },
   tile: {
     flex: 1,
-    borderRadius: 24,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   tileText: {
-    fontSize: 64,
+    fontSize: 40,
     fontWeight: '900',
-    lineHeight: 72,
+    lineHeight: 48,
   },
 });
