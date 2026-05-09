@@ -5,16 +5,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { t } from '@/lib/i18n';
+import { t, type LocaleOverride } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
 
 export default function SettingsScreen() {
-  const { settings, hydrated, setSubtractionEnabled, setSoundsEnabled } = useSettings();
+  const { settings, hydrated, setSubtractionEnabled, setSoundsEnabled, setLanguageOverride } =
+    useSettings();
   const text = useThemeColor({}, 'text');
   const muted = useThemeColor({}, 'textMuted');
   const primary = useThemeColor({}, 'primary');
   const card = useThemeColor({}, 'card');
   const shadow = useThemeColor({}, 'cardShadow');
+  const background = useThemeColor({}, 'background');
+
+  const languageOptions: { value: LocaleOverride; label: string }[] = [
+    { value: 'device', label: t('languageSystem') },
+    { value: 'en', label: 'English' },
+    { value: 'de', label: 'Deutsch' },
+  ];
 
   return (
     <ThemedView style={styles.flex}>
@@ -81,13 +89,44 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <View style={[styles.card, styles.comingSoon, { backgroundColor: card, shadowColor: shadow }]}>
+        <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
           <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
-            {t('comingSoon')}
+            {t('language')}
           </Text>
-          <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
-            {t('comingSoonDesc')}
-          </Text>
+          <View style={styles.chipRow}>
+            {languageOptions.map((opt) => {
+              const active = settings.languageOverride === opt.value;
+              return (
+                <Pressable
+                  key={opt.value}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('a11y.pickLanguage', { label: opt.label })}
+                  accessibilityState={{ selected: active }}
+                  disabled={!hydrated}
+                  onPress={() => setLanguageOverride(opt.value)}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: active ? primary : background,
+                      borderColor: active ? primary : '#D6D2EA',
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      {
+                        color: active ? '#FFFFFF' : text,
+                        fontFamily: Fonts?.rounded,
+                      },
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
       </SafeAreaView>
     </ThemedView>
@@ -154,7 +193,20 @@ const styles = StyleSheet.create({
     marginTop: 4,
     lineHeight: 20,
   },
-  comingSoon: {
-    opacity: 0.85,
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 2,
+  },
+  chipText: {
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
