@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { t, type LocaleOverride } from '@/lib/i18n';
+import { useT, type LocaleOverride } from '@/lib/i18n';
 import { useSettings, type NumbersRange } from '@/lib/settings';
 
 export default function SettingsScreen() {
@@ -17,6 +17,7 @@ export default function SettingsScreen() {
     setLanguageOverride,
     setNumbersRange,
   } = useSettings();
+  const t = useT();
   const text = useThemeColor({}, 'text');
   const muted = useThemeColor({}, 'textMuted');
   const primary = useThemeColor({}, 'primary');

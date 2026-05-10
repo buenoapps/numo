@@ -13,12 +13,13 @@ import { FloatingNumbers } from '@/components/floating-numbers';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { getSpeechLocale, t } from '@/lib/i18n';
+import { getSpeechLocale, useT } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
 
 export default function NumbersScreen() {
   const primary = useThemeColor({}, 'primary');
   const muted = useThemeColor({}, 'textMuted');
+  const t = useT();
   const { settings } = useSettings();
   const max = settings.numbersRange;
   const numbers = Array.from({ length: max + 1 }, (_, i) => i);
@@ -65,6 +66,7 @@ function NumberTile({ value, cols }: { value: number; cols: number }) {
   const primaryDeep = useThemeColor({}, 'primaryDeep');
   const card = useThemeColor({}, 'card');
   const shadow = useThemeColor({}, 'cardShadow');
+  const t = useT();
 
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({

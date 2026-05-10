@@ -41,14 +41,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((raw) => {
         if (cancelled) return;
+        let next = DEFAULTS;
         if (raw) {
           try {
-            const parsed = JSON.parse(raw) as Partial<Settings>;
-            setSettings({ ...DEFAULTS, ...parsed });
+            next = { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) };
           } catch {
             // ignore malformed payload, fall back to defaults
           }
         }
+        setSettings(next);
+        applyLocale(next.languageOverride);
         setHydrated(true);
       })
       .catch(() => {
@@ -58,9 +60,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
-
-  // Keep i18n in sync with the override on every render. Idempotent.
-  applyLocale(settings.languageOverride);
 
   const persist = (next: Settings) => {
     setSettings(next);
@@ -72,7 +71,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     hydrated,
     setSubtractionEnabled: (enabled) => persist({ ...settings, subtractionEnabled: enabled }),
     setSoundsEnabled: (enabled) => persist({ ...settings, soundsEnabled: enabled }),
-    setLanguageOverride: (override) => persist({ ...settings, languageOverride: override }),
+    setLanguageOverride: (override) => {
+      // Apply BEFORE persist so the locale listener and the settings update
+      // are batched into the same React update; consumers see the new locale
+      // on the next render rather than flashing the old one first.
+      applyLocale(override);
+      persist({ ...settings, languageOverride: override });
+    },
     setNumbersRange: (range) => persist({ ...settings, numbersRange: range }),
   };
 

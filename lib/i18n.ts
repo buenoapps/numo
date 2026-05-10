@@ -1,5 +1,6 @@
 import { I18n } from 'i18n-js';
 import * as Localization from 'expo-localization';
+import { useSyncExternalStore } from 'react';
 
 export const SUPPORTED_LOCALES = [
   'en',
@@ -336,20 +337,52 @@ export function getDeviceLocale(): SupportedLocale {
 export const i18n = new I18n(translations);
 i18n.enableFallback = true;
 i18n.defaultLocale = 'en';
-i18n.locale = getDeviceLocale();
+
+let _activeLocale: SupportedLocale = getDeviceLocale();
+i18n.locale = _activeLocale;
+
+// Minimal external store so React (and the React Compiler) can subscribe to
+// locale changes. Without this, components that read t() at render time but
+// don't otherwise depend on the locale get auto-memoized to stale strings.
+const _listeners = new Set<() => void>();
+function _subscribe(cb: () => void): () => void {
+  _listeners.add(cb);
+  return () => {
+    _listeners.delete(cb);
+  };
+}
+function _snapshot(): SupportedLocale {
+  return _activeLocale;
+}
 
 /**
- * Apply the active locale based on the user's override choice.
- * Idempotent — safe to call during render.
+ * Apply the active locale based on the user's override choice. Notifies
+ * subscribers via useSyncExternalStore so every t() consumer re-renders.
+ *
+ * Must be called from an event handler or effect, not during render — calling
+ * listeners during another component's render is unsafe.
  */
 export function applyLocale(override: LocaleOverride): SupportedLocale {
   const next: SupportedLocale = override === 'device' ? getDeviceLocale() : override;
-  if (i18n.locale !== next) i18n.locale = next;
+  if (_activeLocale === next) return next;
+  _activeLocale = next;
+  i18n.locale = next;
+  _listeners.forEach((l) => l());
   return next;
 }
 
 export function t(key: string, options?: Record<string, unknown>): string {
   return i18n.t(key, options);
+}
+
+/**
+ * Hook form of t(). Subscribes the calling component to locale changes so
+ * the returned function always reflects the active locale even when other
+ * inputs to the component are unchanged.
+ */
+export function useT(): typeof t {
+  useSyncExternalStore(_subscribe, _snapshot, _snapshot);
+  return t;
 }
 
 /** BCP-47-ish tag for APIs that need a region (e.g., Speech). */
