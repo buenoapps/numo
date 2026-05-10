@@ -13,7 +13,7 @@ import { StreakBar } from '@/components/streak-bar';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { getSpeechLocale, t } from '@/lib/i18n';
+import { getSpeechLocale, useT } from '@/lib/i18n';
 import { generateProblem, type Op, type Problem } from '@/lib/problems';
 import { useSettings } from '@/lib/settings';
 import { useSuccessSound } from '@/lib/sounds';
@@ -33,6 +33,7 @@ export default function PlayScreen() {
   const primary = useThemeColor({}, 'primary');
   const text = useThemeColor({}, 'text');
   const muted = useThemeColor({}, 'textMuted');
+  const t = useT();
 
   const [problem, setProblem] = useState<Problem>(() => generateProblem(op));
   const [streak, setStreak] = useState(0);

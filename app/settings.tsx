@@ -1,16 +1,23 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { t, type LocaleOverride } from '@/lib/i18n';
-import { useSettings } from '@/lib/settings';
+import { useT, type LocaleOverride } from '@/lib/i18n';
+import { useSettings, type NumbersRange } from '@/lib/settings';
 
 export default function SettingsScreen() {
-  const { settings, hydrated, setSubtractionEnabled, setSoundsEnabled, setLanguageOverride } =
-    useSettings();
+  const {
+    settings,
+    hydrated,
+    setSubtractionEnabled,
+    setSoundsEnabled,
+    setLanguageOverride,
+    setNumbersRange,
+  } = useSettings();
+  const t = useT();
   const text = useThemeColor({}, 'text');
   const muted = useThemeColor({}, 'textMuted');
   const primary = useThemeColor({}, 'primary');
@@ -22,6 +29,17 @@ export default function SettingsScreen() {
     { value: 'device', label: t('languageSystem') },
     { value: 'en', label: 'English' },
     { value: 'de', label: 'Deutsch' },
+    { value: 'fr', label: 'Français' },
+    { value: 'it', label: 'Italiano' },
+    { value: 'es', label: 'Español' },
+    { value: 'pt', label: 'Português' },
+    { value: 'pl', label: 'Polski' },
+    { value: 'hr', label: 'Hrvatski' },
+  ];
+
+  const rangeOptions: { value: NumbersRange; label: string }[] = [
+    { value: 10, label: '0–10' },
+    { value: 21, label: '0–21' },
   ];
 
   return (
@@ -43,91 +61,138 @@ export default function SettingsScreen() {
           <View style={styles.closeBtn} />
         </View>
 
-        <Text style={[styles.parentNote, { color: muted, fontFamily: Fonts?.rounded }]}>
-          {t('forGrownUps')}
-        </Text>
-
-        <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
-          <View style={styles.row}>
-            <View style={styles.rowText}>
-              <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
-                {t('subtractionLabel')}
-              </Text>
-              <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
-                {t('subtractionDesc')}
-              </Text>
-            </View>
-            <Switch
-              accessibilityLabel={t('a11y.enableSubtraction')}
-              value={settings.subtractionEnabled}
-              onValueChange={setSubtractionEnabled}
-              disabled={!hydrated}
-              trackColor={{ true: primary, false: '#D6D2EA' }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-        </View>
-
-        <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
-          <View style={styles.row}>
-            <View style={styles.rowText}>
-              <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
-                {t('soundsLabel')}
-              </Text>
-              <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
-                {t('soundsDesc')}
-              </Text>
-            </View>
-            <Switch
-              accessibilityLabel={t('a11y.enableSounds')}
-              value={settings.soundsEnabled}
-              onValueChange={setSoundsEnabled}
-              disabled={!hydrated}
-              trackColor={{ true: primary, false: '#D6D2EA' }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-        </View>
-
-        <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
-          <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
-            {t('language')}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={[styles.parentNote, { color: muted, fontFamily: Fonts?.rounded }]}>
+            {t('forGrownUps')}
           </Text>
-          <View style={styles.chipRow}>
-            {languageOptions.map((opt) => {
-              const active = settings.languageOverride === opt.value;
-              return (
-                <Pressable
-                  key={opt.value}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('a11y.pickLanguage', { label: opt.label })}
-                  accessibilityState={{ selected: active }}
-                  disabled={!hydrated}
-                  onPress={() => setLanguageOverride(opt.value)}
-                  style={[
-                    styles.chip,
-                    {
-                      backgroundColor: active ? primary : background,
-                      borderColor: active ? primary : '#D6D2EA',
-                    },
-                  ]}
-                >
-                  <Text
+
+          <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
+                  {t('subtractionLabel')}
+                </Text>
+                <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
+                  {t('subtractionDesc')}
+                </Text>
+              </View>
+              <Switch
+                accessibilityLabel={t('a11y.enableSubtraction')}
+                value={settings.subtractionEnabled}
+                onValueChange={setSubtractionEnabled}
+                disabled={!hydrated}
+                trackColor={{ true: primary, false: '#D6D2EA' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
+                  {t('soundsLabel')}
+                </Text>
+                <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
+                  {t('soundsDesc')}
+                </Text>
+              </View>
+              <Switch
+                accessibilityLabel={t('a11y.enableSounds')}
+                value={settings.soundsEnabled}
+                onValueChange={setSoundsEnabled}
+                disabled={!hydrated}
+                trackColor={{ true: primary, false: '#D6D2EA' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+          </View>
+
+          <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
+            <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
+              {t('numbersRangeLabel')}
+            </Text>
+            <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
+              {t('numbersRangeDesc')}
+            </Text>
+            <View style={styles.chipRow}>
+              {rangeOptions.map((opt) => {
+                const active = settings.numbersRange === opt.value;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    disabled={!hydrated}
+                    onPress={() => setNumbersRange(opt.value)}
                     style={[
-                      styles.chipText,
+                      styles.chip,
                       {
-                        color: active ? '#FFFFFF' : text,
-                        fontFamily: Fonts?.rounded,
+                        backgroundColor: active ? primary : background,
+                        borderColor: active ? primary : '#D6D2EA',
                       },
                     ]}
                   >
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+                    <Text
+                      style={[
+                        styles.chipText,
+                        {
+                          color: active ? '#FFFFFF' : text,
+                          fontFamily: Fonts?.rounded,
+                        },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
-        </View>
+
+          <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
+            <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
+              {t('language')}
+            </Text>
+            <View style={styles.chipRow}>
+              {languageOptions.map((opt) => {
+                const active = settings.languageOverride === opt.value;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('a11y.pickLanguage', { label: opt.label })}
+                    accessibilityState={{ selected: active }}
+                    disabled={!hydrated}
+                    onPress={() => setLanguageOverride(opt.value)}
+                    style={[
+                      styles.chip,
+                      {
+                        backgroundColor: active ? primary : background,
+                        borderColor: active ? primary : '#D6D2EA',
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.chipText,
+                        {
+                          color: active ? '#FFFFFF' : text,
+                          fontFamily: Fonts?.rounded,
+                        },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -136,6 +201,9 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   safe: { flex: 1, paddingHorizontal: 20 },
+  scrollContent: {
+    paddingBottom: 32,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

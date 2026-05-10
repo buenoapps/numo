@@ -1,11 +1,23 @@
 import { I18n } from 'i18n-js';
 import * as Localization from 'expo-localization';
+import { useSyncExternalStore } from 'react';
 
-export const SUPPORTED_LOCALES = ['en', 'de', 'es', 'fr', 'it', 'zh', 'ja'] as const;
+export const SUPPORTED_LOCALES = [
+  'en',
+  'de',
+  'es',
+  'fr',
+  'it',
+  'pt',
+  'pl',
+  'hr',
+  'zh',
+  'ja',
+] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 /** Override values the user can pick from the Settings screen. */
-export type LocaleOverride = 'device' | 'en' | 'de';
+export type LocaleOverride = 'device' | SupportedLocale;
 
 const translations = {
   en: {
@@ -21,6 +33,8 @@ const translations = {
     subtractionDesc: 'Add minus problems with results 0–10.',
     soundsLabel: 'Sounds',
     soundsDesc: 'Play a chime and read problems aloud.',
+    numbersRangeLabel: 'Numbers range',
+    numbersRangeDesc: 'How far the Numbers page counts.',
     language: 'Language',
     languageSystem: 'System',
     numbersTitle: 'Tap a number to hear it!',
@@ -49,6 +63,8 @@ const translations = {
     subtractionDesc: 'Minusaufgaben mit Ergebnissen von 0 bis 10.',
     soundsLabel: 'Töne',
     soundsDesc: 'Klang abspielen und Aufgaben vorlesen.',
+    numbersRangeLabel: 'Zahlenbereich',
+    numbersRangeDesc: 'Wie weit die Zahlenseite zählt.',
     language: 'Sprache',
     languageSystem: 'Gerät',
     numbersTitle: 'Tippe eine Zahl, um sie zu hören!',
@@ -77,6 +93,8 @@ const translations = {
     subtractionDesc: 'Añadir problemas de resta con resultados entre 0 y 10.',
     soundsLabel: 'Sonidos',
     soundsDesc: 'Reproducir un sonido y leer las preguntas en voz alta.',
+    numbersRangeLabel: 'Rango de números',
+    numbersRangeDesc: 'Hasta cuánto cuenta la pantalla de Números.',
     language: 'Idioma',
     languageSystem: 'Sistema',
     numbersTitle: '¡Toca un número para escucharlo!',
@@ -106,6 +124,8 @@ const translations = {
       'Ajouter des soustractions avec des résultats entre 0 et 10.',
     soundsLabel: 'Sons',
     soundsDesc: 'Jouer un son et lire les questions à voix haute.',
+    numbersRangeLabel: 'Plage de nombres',
+    numbersRangeDesc: 'Jusqu’où compte la page Chiffres.',
     language: 'Langue',
     languageSystem: 'Système',
     numbersTitle: 'Appuie sur un nombre pour l’entendre !',
@@ -134,6 +154,8 @@ const translations = {
     subtractionDesc: 'Aggiungi problemi di sottrazione con risultati da 0 a 10.',
     soundsLabel: 'Suoni',
     soundsDesc: 'Riprodurre un suono e leggere le domande ad alta voce.',
+    numbersRangeLabel: 'Intervallo numeri',
+    numbersRangeDesc: 'Fino a quanto conta la pagina Numeri.',
     language: 'Lingua',
     languageSystem: 'Sistema',
     numbersTitle: 'Tocca un numero per sentirlo!',
@@ -162,6 +184,8 @@ const translations = {
     subtractionDesc: '添加结果在 0 到 10 之间的减法题。',
     soundsLabel: '声音',
     soundsDesc: '播放音效并朗读题目。',
+    numbersRangeLabel: '数字范围',
+    numbersRangeDesc: '数字页面计数的范围。',
     language: '语言',
     languageSystem: '系统',
     numbersTitle: '点击数字听一听！',
@@ -190,6 +214,8 @@ const translations = {
     subtractionDesc: '0〜10 のひきざんもんだいをついかします。',
     soundsLabel: 'おと',
     soundsDesc: 'おとをならし、もんだいをよみあげます。',
+    numbersRangeLabel: 'すうじのはんい',
+    numbersRangeDesc: 'すうじページのはんい。',
     language: 'げんご',
     languageSystem: 'システム',
     numbersTitle: 'すうじをタップしてきこう！',
@@ -203,6 +229,96 @@ const translations = {
       answer: 'こたえ {{value}}',
       play: '{{label}} であそぶ',
       speakNumber: 'すうじ {{value}} をよむ',
+    },
+  },
+  pt: {
+    subtitle: 'Vamos fazer matemática!',
+    letsPlay: 'Vamos jogar!',
+    add: 'Somar!',
+    subtract: 'Subtrair!',
+    numbers: 'Números!',
+    onFire: 'Mandou bem!',
+    settings: 'Ajustes',
+    forGrownUps: 'Para adultos',
+    subtractionLabel: 'Subtração',
+    subtractionDesc: 'Adicionar problemas de subtração com resultados de 0 a 10.',
+    soundsLabel: 'Sons',
+    soundsDesc: 'Tocar um som e ler as perguntas em voz alta.',
+    numbersRangeLabel: 'Faixa de números',
+    numbersRangeDesc: 'Até onde a tela de Números conta.',
+    language: 'Idioma',
+    languageSystem: 'Sistema',
+    numbersTitle: 'Toque em um número para ouvi-lo!',
+    a11y: {
+      openSettings: 'Abrir ajustes',
+      closeSettings: 'Fechar ajustes',
+      goHome: 'Ir para o início',
+      enableSubtraction: 'Ativar subtração',
+      enableSounds: 'Ativar sons',
+      pickLanguage: 'Escolher idioma: {{label}}',
+      answer: 'Resposta {{value}}',
+      play: 'Jogar {{label}}',
+      speakNumber: 'Falar o número {{value}}',
+    },
+  },
+  pl: {
+    subtitle: 'Pobawmy się matematyką!',
+    letsPlay: 'Zagrajmy!',
+    add: 'Dodaj!',
+    subtract: 'Odejmij!',
+    numbers: 'Liczby!',
+    onFire: 'Super!',
+    settings: 'Ustawienia',
+    forGrownUps: 'Dla dorosłych',
+    subtractionLabel: 'Odejmowanie',
+    subtractionDesc: 'Dodaj zadania z odejmowania z wynikami od 0 do 10.',
+    soundsLabel: 'Dźwięki',
+    soundsDesc: 'Odtwarzaj dźwięk i czytaj pytania na głos.',
+    numbersRangeLabel: 'Zakres liczb',
+    numbersRangeDesc: 'Do ilu liczy strona Liczby.',
+    language: 'Język',
+    languageSystem: 'System',
+    numbersTitle: 'Stuknij liczbę, aby ją usłyszeć!',
+    a11y: {
+      openSettings: 'Otwórz ustawienia',
+      closeSettings: 'Zamknij ustawienia',
+      goHome: 'Wróć do strony głównej',
+      enableSubtraction: 'Włącz odejmowanie',
+      enableSounds: 'Włącz dźwięki',
+      pickLanguage: 'Wybierz język: {{label}}',
+      answer: 'Odpowiedź {{value}}',
+      play: 'Graj w {{label}}',
+      speakNumber: 'Wypowiedz liczbę {{value}}',
+    },
+  },
+  hr: {
+    subtitle: 'Hajdemo računati!',
+    letsPlay: 'Idemo se igrati!',
+    add: 'Zbroji!',
+    subtract: 'Oduzmi!',
+    numbers: 'Brojevi!',
+    onFire: 'Odlično!',
+    settings: 'Postavke',
+    forGrownUps: 'Za odrasle',
+    subtractionLabel: 'Oduzimanje',
+    subtractionDesc: 'Dodaj zadatke oduzimanja s rezultatima od 0 do 10.',
+    soundsLabel: 'Zvukovi',
+    soundsDesc: 'Pusti zvuk i naglas pročitaj pitanja.',
+    numbersRangeLabel: 'Raspon brojeva',
+    numbersRangeDesc: 'Dokle broji stranica Brojevi.',
+    language: 'Jezik',
+    languageSystem: 'Sustav',
+    numbersTitle: 'Dodirni broj da ga čuješ!',
+    a11y: {
+      openSettings: 'Otvori postavke',
+      closeSettings: 'Zatvori postavke',
+      goHome: 'Idi na početnu',
+      enableSubtraction: 'Omogući oduzimanje',
+      enableSounds: 'Omogući zvukove',
+      pickLanguage: 'Odaberi jezik: {{label}}',
+      answer: 'Odgovor {{value}}',
+      play: 'Igraj {{label}}',
+      speakNumber: 'Izgovori broj {{value}}',
     },
   },
 };
@@ -221,20 +337,52 @@ export function getDeviceLocale(): SupportedLocale {
 export const i18n = new I18n(translations);
 i18n.enableFallback = true;
 i18n.defaultLocale = 'en';
-i18n.locale = getDeviceLocale();
+
+let _activeLocale: SupportedLocale = getDeviceLocale();
+i18n.locale = _activeLocale;
+
+// Minimal external store so React (and the React Compiler) can subscribe to
+// locale changes. Without this, components that read t() at render time but
+// don't otherwise depend on the locale get auto-memoized to stale strings.
+const _listeners = new Set<() => void>();
+function _subscribe(cb: () => void): () => void {
+  _listeners.add(cb);
+  return () => {
+    _listeners.delete(cb);
+  };
+}
+function _snapshot(): SupportedLocale {
+  return _activeLocale;
+}
 
 /**
- * Apply the active locale based on the user's override choice.
- * Idempotent — safe to call during render.
+ * Apply the active locale based on the user's override choice. Notifies
+ * subscribers via useSyncExternalStore so every t() consumer re-renders.
+ *
+ * Must be called from an event handler or effect, not during render — calling
+ * listeners during another component's render is unsafe.
  */
 export function applyLocale(override: LocaleOverride): SupportedLocale {
   const next: SupportedLocale = override === 'device' ? getDeviceLocale() : override;
-  if (i18n.locale !== next) i18n.locale = next;
+  if (_activeLocale === next) return next;
+  _activeLocale = next;
+  i18n.locale = next;
+  _listeners.forEach((l) => l());
   return next;
 }
 
 export function t(key: string, options?: Record<string, unknown>): string {
   return i18n.t(key, options);
+}
+
+/**
+ * Hook form of t(). Subscribes the calling component to locale changes so
+ * the returned function always reflects the active locale even when other
+ * inputs to the component are unchanged.
+ */
+export function useT(): typeof t {
+  useSyncExternalStore(_subscribe, _snapshot, _snapshot);
+  return t;
 }
 
 /** BCP-47-ish tag for APIs that need a region (e.g., Speech). */
@@ -245,6 +393,9 @@ export function getSpeechLocale(): string {
     es: 'es-ES',
     fr: 'fr-FR',
     it: 'it-IT',
+    pt: 'pt-BR',
+    pl: 'pl-PL',
+    hr: 'hr-HR',
     zh: 'zh-CN',
     ja: 'ja-JP',
   };

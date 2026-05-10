@@ -3,7 +3,7 @@ import Animated, { ZoomIn } from 'react-native-reanimated';
 
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { t } from '@/lib/i18n';
+import { useT } from '@/lib/i18n';
 
 type Props = {
   streak: number;
@@ -11,6 +11,7 @@ type Props = {
 };
 
 export function StreakBar({ streak, max = 5 }: Props) {
+  const t = useT();
   const accent = useThemeColor({}, 'accent');
   const muted = useThemeColor({}, 'textMuted');
   const text = useThemeColor({}, 'text');

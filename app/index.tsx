@@ -12,7 +12,7 @@ import { Numo } from '@/components/numo';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { t } from '@/lib/i18n';
+import { useT } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
 
 type CtaSpec = {
@@ -34,6 +34,7 @@ export default function HomeScreen() {
   const shadow = useThemeColor({}, 'cardShadow');
   const text = useThemeColor({}, 'text');
   const insets = useSafeAreaInsets();
+  const t = useT();
 
   const { settings } = useSettings();
 
@@ -115,6 +116,7 @@ function Cta({
   shadowColor,
   onPress,
 }: Pick<CtaSpec, 'emoji' | 'label' | 'bg' | 'fg' | 'shadowColor' | 'onPress'>) {
+  const t = useT();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

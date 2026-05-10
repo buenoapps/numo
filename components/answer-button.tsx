@@ -11,7 +11,7 @@ import Animated, {
 
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { t } from '@/lib/i18n';
+import { useT } from '@/lib/i18n';
 
 export type AnswerState = 'idle' | 'correct' | 'wrong';
 
@@ -23,6 +23,7 @@ type Props = {
 };
 
 export function AnswerButton({ value, state, disabled, onPress }: Props) {
+  const t = useT();
   const card = useThemeColor({}, 'card');
   const correct = useThemeColor({}, 'correct');
   const wrong = useThemeColor({}, 'wrong');

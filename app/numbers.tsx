@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import * as Speech from 'expo-speech';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -13,13 +13,17 @@ import { FloatingNumbers } from '@/components/floating-numbers';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { getSpeechLocale, t } from '@/lib/i18n';
-
-const NUMBERS = Array.from({ length: 11 }, (_, i) => i);
+import { getSpeechLocale, useT } from '@/lib/i18n';
+import { useSettings } from '@/lib/settings';
 
 export default function NumbersScreen() {
   const primary = useThemeColor({}, 'primary');
   const muted = useThemeColor({}, 'textMuted');
+  const t = useT();
+  const { settings } = useSettings();
+  const max = settings.numbersRange;
+  const numbers = Array.from({ length: max + 1 }, (_, i) => i);
+  const cols = max > 10 ? 5 : 4;
 
   return (
     <ThemedView style={styles.flex}>
@@ -42,21 +46,27 @@ export default function NumbersScreen() {
           {t('numbersTitle')}
         </Text>
 
-        <View style={styles.grid}>
-          {NUMBERS.map((n) => (
-            <NumberTile key={n} value={n} />
-          ))}
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.gridContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.grid}>
+            {numbers.map((n) => (
+              <NumberTile key={n} value={n} cols={cols} />
+            ))}
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
 }
 
-function NumberTile({ value }: { value: number }) {
+function NumberTile({ value, cols }: { value: number; cols: number }) {
   const primary = useThemeColor({}, 'primary');
   const primaryDeep = useThemeColor({}, 'primaryDeep');
   const card = useThemeColor({}, 'card');
   const shadow = useThemeColor({}, 'cardShadow');
+  const t = useT();
 
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -69,8 +79,12 @@ function NumberTile({ value }: { value: number }) {
     Speech.speak(String(value), { language: getSpeechLocale() });
   };
 
+  const tileWidth = `${100 / cols}%` as const;
+  const fontSize = cols === 5 ? 32 : 40;
+  const lineHeight = cols === 5 ? 38 : 48;
+
   return (
-    <Animated.View style={[styles.tileWrap, animatedStyle]}>
+    <Animated.View style={[styles.tileWrap, { width: tileWidth }, animatedStyle]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('a11y.speakNumber', { value })}
@@ -83,7 +97,14 @@ function NumberTile({ value }: { value: number }) {
         onPress={onPress}
         style={[styles.tile, { backgroundColor: card, shadowColor: primaryDeep ?? shadow }]}
       >
-        <Text style={[styles.tileText, { color: primary, fontFamily: Fonts?.rounded }]}>{value}</Text>
+        <Text
+          style={[
+            styles.tileText,
+            { color: primary, fontFamily: Fonts?.rounded, fontSize, lineHeight },
+          ]}
+        >
+          {value}
+        </Text>
       </Pressable>
     </Animated.View>
   );
@@ -116,16 +137,16 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     paddingHorizontal: 16,
   },
+  gridContent: {
+    paddingBottom: 24,
+  },
   grid: {
-    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   tileWrap: {
-    width: '25%',
     aspectRatio: 1,
     padding: 6,
   },
@@ -140,8 +161,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   tileText: {
-    fontSize: 40,
     fontWeight: '900',
-    lineHeight: 48,
   },
 });
