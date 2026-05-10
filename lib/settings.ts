@@ -5,16 +5,20 @@ import { applyLocale, type LocaleOverride } from '@/lib/i18n';
 
 const STORAGE_KEY = 'numo.settings.v1';
 
+export type NumbersRange = 10 | 21;
+
 export type Settings = {
   subtractionEnabled: boolean;
   soundsEnabled: boolean;
   languageOverride: LocaleOverride;
+  numbersRange: NumbersRange;
 };
 
 const DEFAULTS: Settings = {
   subtractionEnabled: false,
   soundsEnabled: true,
   languageOverride: 'device',
+  numbersRange: 10,
 };
 
 type SettingsContextValue = {
@@ -23,6 +27,7 @@ type SettingsContextValue = {
   setSubtractionEnabled: (enabled: boolean) => void;
   setSoundsEnabled: (enabled: boolean) => void;
   setLanguageOverride: (override: LocaleOverride) => void;
+  setNumbersRange: (range: NumbersRange) => void;
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -68,6 +73,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setSubtractionEnabled: (enabled) => persist({ ...settings, subtractionEnabled: enabled }),
     setSoundsEnabled: (enabled) => persist({ ...settings, soundsEnabled: enabled }),
     setLanguageOverride: (override) => persist({ ...settings, languageOverride: override }),
+    setNumbersRange: (range) => persist({ ...settings, numbersRange: range }),
   };
 
   return createElement(SettingsContext.Provider, { value }, children);
