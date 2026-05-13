@@ -4,7 +4,7 @@ Operational notes for Claude Code agents working in this repo. Read `README.md` 
 
 ## Project in one paragraph
 
-Numo is an Expo Router app (Expo SDK 54, RN 0.81, TS strict) for early math practice. Two game modes (addition always, subtraction opt-in via parental settings) plus a Numbers screen that reads digits aloud. Persisted settings via AsyncStorage. Localized for 7 languages with auto-detect. Mascot is a placeholder built from styled Views.
+Numo is an Expo Router app (Expo SDK 56 preview, RN 0.85, TS strict) for early math practice. Two game modes (addition always, subtraction opt-in via parental settings) plus a Numbers screen that reads digits aloud. Persisted settings via AsyncStorage. Localized for ten languages with auto-detect. Mascot is a placeholder built from styled Views.
 
 ## Daily commands
 
@@ -84,12 +84,12 @@ Repo scope for the GitHub MCP is `buenoapps/numo` only.
 
 ## Adding a new dependency
 
-`npx expo install` may fail in restricted networks here. If it does, fall back to `npm install <pkg>@<version>` using the version Expo SDK 54 expects (check the Expo docs or other Expo SDK 54 projects). Always commit `package.json` + `package-lock.json` together.
+`npx expo install` may fail in restricted networks here. If it does, fall back to `npm install <pkg>@<version>` using the version Expo SDK 56 expects (check the Expo docs or other Expo SDK 56 projects). Always commit `package.json` + `package-lock.json` together.
 
 ## Things to avoid
 
 - Running `eas build` in CI or for sanity checks.
-- Adding native modules that aren't on Expo's bundled list without confirming SDK 54 compatibility.
+- Adding native modules that aren't on Expo's bundled list without confirming SDK 56 compatibility.
 - Hardcoded UI strings — use `t()`.
 - Swapping the success chime asset casually; it's a small generated WAV bundled on purpose.
 - Force-pushing to `main` or to other developers' branches.
