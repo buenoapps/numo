@@ -18,8 +18,8 @@ Active development. v1 ships:
 
 ## Tech stack
 
-- Expo SDK 54, expo-router 6
-- React 19, React Native 0.81, TypeScript strict
+- Expo SDK 56 (preview), expo-router 56
+- React 19.2, React Native 0.85, TypeScript strict
 - New Architecture and React Compiler enabled
 - `react-native-reanimated` for all animations
 - `expo-audio` for the success chime, `expo-speech` for digit TTS, `expo-haptics` for vibration
