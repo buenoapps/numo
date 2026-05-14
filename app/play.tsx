@@ -39,24 +39,36 @@ export default function PlayScreen() {
   const [streak, setStreak] = useState(0);
   const [wrongChoice, setWrongChoice] = useState<number | null>(null);
   const [correctRevealed, setCorrectRevealed] = useState(false);
+  const [trackedOp, setTrackedOp] = useState(op);
 
   const { settings } = useSettings();
   const playSuccess = useSuccessSound();
 
   const nextTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrongTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const soundsEnabledRef = useRef(settings.soundsEnabled);
-  soundsEnabledRef.current = settings.soundsEnabled;
 
-  const speak = useCallback((phrase: string) => {
-    if (!soundsEnabledRef.current) return;
-    try {
-      Speech.stop();
-      Speech.speak(phrase, { language: getSpeechLocale() });
-    } catch {
-      // No TTS backend (e.g., web on some browsers) — silent fallback.
-    }
-  }, []);
+  const speak = useCallback(
+    (phrase: string) => {
+      if (!settings.soundsEnabled) return;
+      try {
+        Speech.stop();
+        Speech.speak(phrase, { language: getSpeechLocale() });
+      } catch {
+        // No TTS backend (e.g., web on some browsers) — silent fallback.
+      }
+    },
+    [settings.soundsEnabled],
+  );
+
+  // Reset the round when the mode (?op=) changes — the render-time
+  // "adjust state when a prop changes" pattern, not an effect.
+  if (trackedOp !== op) {
+    setTrackedOp(op);
+    setProblem(generateProblem(op));
+    setCorrectRevealed(false);
+    setWrongChoice(null);
+    setStreak(0);
+  }
 
   useEffect(() => {
     return () => {
@@ -69,13 +81,6 @@ export default function PlayScreen() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    setProblem(generateProblem(op));
-    setCorrectRevealed(false);
-    setWrongChoice(null);
-    setStreak(0);
-  }, [op]);
 
   // Read each new problem aloud when it appears.
   useEffect(() => {
