@@ -27,7 +27,7 @@
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
     "@react-native-async-storage/async-storage": "^3.0.2",
-    "expo": "56.0.0-preview.10",
+    "expo": "56.0.0-preview.11",
     "expo-audio": "~56.0.5",
     "expo-constants": "~56.0.9",
     "expo-font": "~56.0.3",
