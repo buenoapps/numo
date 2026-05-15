@@ -1,6 +1,6 @@
 import { I18n } from 'i18n-js';
 import * as Localization from 'expo-localization';
-import { useSyncExternalStore } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 
 export const SUPPORTED_LOCALES = [
   'en',
@@ -376,13 +376,26 @@ export function t(key: string, options?: Record<string, unknown>): string {
 }
 
 /**
- * Hook form of t(). Subscribes the calling component to locale changes so
- * the returned function always reflects the active locale even when other
- * inputs to the component are unchanged.
+ * Hook form of t(). Subscribes the calling component to locale changes and
+ * returns a translator bound to the active locale.
+ *
+ * Two things matter here:
+ *  - `useSyncExternalStore` makes the component re-render when the locale
+ *    flips.
+ *  - The returned function is a new reference whenever the locale changes,
+ *    and it passes the locale explicitly to `i18n.t`. Without that, the
+ *    React Compiler caches JSX cells like `<Text>{t('foo')}</Text>` against
+ *    a stable `t` reference and serves stale translations even though the
+ *    component re-renders.
  */
-export function useT(): typeof t {
-  useSyncExternalStore(_subscribe, _snapshot, _snapshot);
-  return t;
+export function useT(): (key: string, options?: Record<string, unknown>) => string {
+  const locale = useSyncExternalStore(_subscribe, _snapshot, _snapshot);
+  return useMemo(
+    () =>
+      (key: string, options?: Record<string, unknown>) =>
+        i18n.t(key, { locale, ...options }),
+    [locale],
+  );
 }
 
 /** BCP-47-ish tag for APIs that need a region (e.g., Speech). */
