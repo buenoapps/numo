@@ -14,14 +14,21 @@ import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { getSpeechLocale, useT } from '@/lib/i18n';
-import { generateProblem, type Op, type Problem } from '@/lib/problems';
+import { generateProblem, type Problem } from '@/lib/problems';
 import { useSettings } from '@/lib/settings';
 import { useSuccessSound } from '@/lib/sounds';
 
 const NEXT_DELAY_MS = 1800;
 const WRONG_RESET_MS = 500;
+/**
+ * Above this, both operands stop getting a dot grid — too many dots clutter
+ * the screen. The numeric equation is enough for larger numbers.
+ */
+const MAX_DOTS_PER_GROUP = 10;
 
-function parseOp(raw: string | string[] | undefined): Op {
+type MathOp = 'add' | 'sub';
+
+function parseOp(raw: string | string[] | undefined): MathOp {
   const value = Array.isArray(raw) ? raw[0] : raw;
   return value === 'sub' ? 'sub' : 'add';
 }
@@ -35,28 +42,49 @@ export default function PlayScreen() {
   const muted = useThemeColor({}, 'textMuted');
   const t = useT();
 
-  const [problem, setProblem] = useState<Problem>(() => generateProblem(op));
+  const { settings } = useSettings();
+  const pageConfig = settings.pages[op];
+
+  const [problem, setProblem] = useState<Problem>(() =>
+    generateProblem(op, { until: pageConfig.until, includeZero: pageConfig.includeZero }),
+  );
   const [streak, setStreak] = useState(0);
   const [wrongChoice, setWrongChoice] = useState<number | null>(null);
   const [correctRevealed, setCorrectRevealed] = useState(false);
+  const [trackedKey, setTrackedKey] = useState(
+    `${op}:${pageConfig.until}:${pageConfig.includeZero}`,
+  );
 
-  const { settings } = useSettings();
   const playSuccess = useSuccessSound();
 
   const nextTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrongTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const soundsEnabledRef = useRef(settings.soundsEnabled);
-  soundsEnabledRef.current = settings.soundsEnabled;
 
-  const speak = useCallback((phrase: string) => {
-    if (!soundsEnabledRef.current) return;
-    try {
-      Speech.stop();
-      Speech.speak(phrase, { language: getSpeechLocale() });
-    } catch {
-      // No TTS backend (e.g., web on some browsers) — silent fallback.
-    }
-  }, []);
+  const speak = useCallback(
+    (phrase: string) => {
+      if (!settings.soundsEnabled) return;
+      try {
+        Speech.stop();
+        Speech.speak(phrase, { language: getSpeechLocale() });
+      } catch {
+        // No TTS backend (e.g., web on some browsers) — silent fallback.
+      }
+    },
+    [settings.soundsEnabled],
+  );
+
+  // Reset the round when the mode or its config changes — render-time
+  // "adjust state on prop change" pattern, not an effect.
+  const currentKey = `${op}:${pageConfig.until}:${pageConfig.includeZero}`;
+  if (trackedKey !== currentKey) {
+    setTrackedKey(currentKey);
+    setProblem(
+      generateProblem(op, { until: pageConfig.until, includeZero: pageConfig.includeZero }),
+    );
+    setCorrectRevealed(false);
+    setWrongChoice(null);
+    setStreak(0);
+  }
 
   useEffect(() => {
     return () => {
@@ -70,13 +98,6 @@ export default function PlayScreen() {
     };
   }, []);
 
-  useEffect(() => {
-    setProblem(generateProblem(op));
-    setCorrectRevealed(false);
-    setWrongChoice(null);
-    setStreak(0);
-  }, [op]);
-
   // Read each new problem aloud when it appears.
   useEffect(() => {
     if (correctRevealed) return;
@@ -85,16 +106,17 @@ export default function PlayScreen() {
   }, [problem, correctRevealed, speak]);
 
   const nextProblem = useCallback(() => {
-    setProblem(generateProblem(op));
+    setProblem(
+      generateProblem(op, { until: pageConfig.until, includeZero: pageConfig.includeZero }),
+    );
     setCorrectRevealed(false);
     setWrongChoice(null);
-  }, [op]);
+  }, [op, pageConfig.until, pageConfig.includeZero]);
 
   const onAnswer = useCallback(
     (value: number) => {
       if (correctRevealed) return;
 
-      // Haptic on every press, regardless of correctness.
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
       if (value === problem.answer) {
@@ -117,6 +139,8 @@ export default function PlayScreen() {
   const mood: NumoMood = correctRevealed ? 'happy' : wrongChoice !== null ? 'oops' : 'thinking';
   const opSymbol = problem.op === 'add' ? '+' : '−';
   const title = problem.op === 'add' ? t('add') : t('subtract');
+  const showDots =
+    problem.a <= MAX_DOTS_PER_GROUP && problem.b <= MAX_DOTS_PER_GROUP;
 
   return (
     <ThemedView style={styles.flex}>
@@ -142,17 +166,21 @@ export default function PlayScreen() {
           <Numo mood={mood} size={140} />
         </View>
 
-        <View style={styles.visualRow}>
-          {problem.op === 'add' ? (
-            <>
-              <DotGroup count={problem.a} />
-              <Text style={[styles.opGlyph, { color: muted, fontFamily: Fonts?.rounded }]}>+</Text>
-              <DotGroup count={problem.b} />
-            </>
-          ) : (
-            <DotGroup count={problem.a} removed={problem.b} />
-          )}
-        </View>
+        {showDots ? (
+          <View style={styles.visualRow}>
+            {problem.op === 'add' ? (
+              <>
+                <DotGroup count={problem.a} />
+                <Text style={[styles.opGlyph, { color: muted, fontFamily: Fonts?.rounded }]}>+</Text>
+                <DotGroup count={problem.b} />
+              </>
+            ) : (
+              <DotGroup count={problem.a} removed={problem.b} />
+            )}
+          </View>
+        ) : (
+          <View style={styles.visualSpacer} />
+        )}
 
         <Text style={[styles.equation, { color: text, fontFamily: Fonts?.rounded }]}>
           {problem.a} {opSymbol} {problem.b} = ?
@@ -239,6 +267,9 @@ const styles = StyleSheet.create({
     minHeight: 80,
     paddingHorizontal: 8,
     gap: 12,
+  },
+  visualSpacer: {
+    height: 24,
   },
   opGlyph: {
     fontSize: 36,

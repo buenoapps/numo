@@ -16,7 +16,7 @@ import { useT } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
 
 type CtaSpec = {
-  key: 'numbers' | 'add' | 'sub';
+  key: 'numbers' | 'count' | 'add' | 'sub';
   emoji: string;
   label: string;
   bg: string;
@@ -38,8 +38,9 @@ export default function HomeScreen() {
 
   const { settings } = useSettings();
 
-  const ctas: CtaSpec[] = [
-    {
+  const ctas: CtaSpec[] = [];
+  if (settings.pages.numbers.enabled) {
+    ctas.push({
       key: 'numbers',
       emoji: '🔊',
       label: t('numbers'),
@@ -47,8 +48,21 @@ export default function HomeScreen() {
       fg: primary,
       shadowColor: shadow,
       onPress: () => router.push('/numbers'),
-    },
-    {
+    });
+  }
+  if (settings.pages.count.enabled) {
+    ctas.push({
+      key: 'count',
+      emoji: '🔢',
+      label: t('count'),
+      bg: card,
+      fg: primary,
+      shadowColor: shadow,
+      onPress: () => router.push('/count'),
+    });
+  }
+  if (settings.pages.add.enabled) {
+    ctas.push({
       key: 'add',
       emoji: '➕',
       label: t('add'),
@@ -56,9 +70,9 @@ export default function HomeScreen() {
       fg: '#FFFFFF',
       shadowColor: primaryDeep ?? shadow,
       onPress: () => router.push({ pathname: '/play', params: { op: 'add' } }),
-    },
-  ];
-  if (settings.subtractionEnabled) {
+    });
+  }
+  if (settings.pages.sub.enabled) {
     ctas.push({
       key: 'sub',
       emoji: '➖',
@@ -94,7 +108,7 @@ export default function HomeScreen() {
           </Text>
 
           <View style={styles.mascotWrap}>
-            <Numo mood="idle" size={180} />
+            <Numo mood="idle" size={150} />
           </View>
 
           <View style={styles.ctaStack}>
@@ -192,7 +206,7 @@ const styles = StyleSheet.create({
   },
   ctaStack: {
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   ctaWrap: {
     width: CTA_WIDTH,
