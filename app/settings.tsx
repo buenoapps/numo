@@ -25,16 +25,16 @@ export default function SettingsScreen() {
   const shadow = useThemeColor({}, 'cardShadow');
   const background = useThemeColor({}, 'background');
 
-  const languageOptions: { value: LocaleOverride; label: string }[] = [
-    { value: 'device', label: t('languageSystem') },
-    { value: 'en', label: 'English' },
-    { value: 'de', label: 'Deutsch' },
-    { value: 'fr', label: 'Français' },
-    { value: 'it', label: 'Italiano' },
-    { value: 'es', label: 'Español' },
-    { value: 'pt', label: 'Português' },
-    { value: 'pl', label: 'Polski' },
-    { value: 'hr', label: 'Hrvatski' },
+  const languageOptions: { value: LocaleOverride; label: string; flag: string }[] = [
+    { value: 'device', label: t('languageSystem'), flag: '🌐' },
+    { value: 'en', label: 'English', flag: '🇬🇧' },
+    { value: 'de', label: 'Deutsch', flag: '🇩🇪' },
+    { value: 'fr', label: 'Français', flag: '🇫🇷' },
+    { value: 'it', label: 'Italiano', flag: '🇮🇹' },
+    { value: 'es', label: 'Español', flag: '🇪🇸' },
+    { value: 'pt', label: 'Português', flag: '🇵🇹' },
+    { value: 'pl', label: 'Polski', flag: '🇵🇱' },
+    { value: 'hr', label: 'Hrvatski', flag: '🇭🇷' },
   ];
 
   const rangeOptions: { value: NumbersRange; label: string }[] = [
@@ -185,7 +185,7 @@ export default function SettingsScreen() {
                         },
                       ]}
                     >
-                      {opt.label}
+                      {opt.flag} {opt.label}
                     </Text>
                   </Pressable>
                 );
