@@ -1,21 +1,24 @@
 /**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
+ * Resolve a theme color for the currently active user.
+ *
+ * The lookup goes: explicit prop override -> active user's monster palette
+ * for the current light/dark scheme -> default (purple) palette as a safe
+ * fallback when no user is active yet (e.g., onboarding).
  */
 
-import { Colors } from '@/constants/theme';
+import { DEFAULT_MONSTER, MONSTER_PALETTES, type Palette } from '@/constants/monsters';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useSettings } from '@/lib/settings';
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors.light & keyof typeof Colors.dark
+  colorName: keyof Palette,
 ) {
-  const theme = useColorScheme() ?? 'light';
+  const scheme = useColorScheme();
+  const theme: 'light' | 'dark' = scheme === 'dark' ? 'dark' : 'light';
+  const { activeUser } = useSettings();
+  const monster = activeUser?.monster ?? DEFAULT_MONSTER;
   const colorFromProps = props[theme];
-
-  if (colorFromProps) {
-    return colorFromProps;
-  } else {
-    return Colors[theme][colorName];
-  }
+  if (colorFromProps) return colorFromProps;
+  return MONSTER_PALETTES[monster][theme][colorName];
 }
