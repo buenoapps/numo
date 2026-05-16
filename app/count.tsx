@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AnswerButton } from '@/components/answer-button';
+import { Confetti } from '@/components/confetti';
 import { DotGroup } from '@/components/dot-group';
 import { FloatingNumbers } from '@/components/floating-numbers';
 import { Numo, type NumoMood } from '@/components/numo';
@@ -36,6 +37,7 @@ export default function CountScreen() {
   const [wrongChoice, setWrongChoice] = useState<number | null>(null);
   const [correctRevealed, setCorrectRevealed] = useState(false);
   const [firstAnswerLogged, setFirstAnswerLogged] = useState(false);
+  const [confettiKey, setConfettiKey] = useState(0);
   const [trackedKey, setTrackedKey] = useState(
     `${pageConfig.until}:${pageConfig.includeZero}`,
   );
@@ -105,12 +107,17 @@ export default function CountScreen() {
 
       if (right) {
         setCorrectRevealed(true);
-        setStreak((s) => s + 1);
+        setStreak((s) => {
+          const next = Math.min(s + 1, 5);
+          if (next === 5) setConfettiKey((k) => k + 1);
+          return next;
+        });
         playSuccess();
         speak(String(problem.answer));
         if (nextTimer.current) clearTimeout(nextTimer.current);
         nextTimer.current = setTimeout(nextProblem, NEXT_DELAY_MS);
       } else {
+        setStreak((s) => Math.max(s - 1, 0));
         setWrongChoice(value);
         if (wrongTimer.current) clearTimeout(wrongTimer.current);
         wrongTimer.current = setTimeout(() => setWrongChoice(null), WRONG_RESET_MS);
@@ -132,6 +139,7 @@ export default function CountScreen() {
   return (
     <ThemedView style={styles.flex}>
       <FloatingNumbers count={7} />
+      {confettiKey > 0 ? <Confetti triggerKey={confettiKey} /> : null}
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
         <View style={styles.header}>
           <Pressable
