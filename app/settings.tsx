@@ -88,10 +88,6 @@ export default function SettingsScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={[styles.parentNote, { color: muted, fontFamily: Fonts?.rounded }]}>
-            {t('forGrownUps')}
-          </Text>
-
           {/* Sounds — moved to the top. */}
           <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
             <View style={styles.row}>
@@ -282,15 +278,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '900',
-  },
-  parentNote: {
-    fontSize: 14,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginTop: 12,
-    marginBottom: 8,
-    marginLeft: 4,
   },
   card: {
     borderRadius: 20,
