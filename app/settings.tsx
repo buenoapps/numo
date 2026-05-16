@@ -170,6 +170,7 @@ function SettingsBody() {
   const {
     settings,
     hydrated,
+    activeUser,
     setPageConfig,
     setSoundsEnabled,
     setLanguageOverride,
@@ -362,6 +363,23 @@ function SettingsBody() {
           {PAGE_SECTIONS.map((section) => {
             const config = settings.pages[section.page];
             const title = t(section.titleKey);
+            const scoredOp =
+              section.page === 'count' || section.page === 'add' || section.page === 'sub'
+                ? (section.page as 'count' | 'add' | 'sub')
+                : null;
+            const stat = scoredOp && activeUser ? activeUser.stats[scoredOp] : null;
+            const total = stat ? stat.correct + stat.wrong : 0;
+            const statsLabel =
+              stat && total > 0
+                ? t('statsLine', {
+                    percent: Math.round((stat.correct / total) * 100),
+                    correct: stat.correct,
+                    total,
+                  })
+                : stat
+                  ? t('statsEmpty')
+                  : null;
+
             return (
               <View
                 key={section.page}
@@ -370,6 +388,11 @@ function SettingsBody() {
                 <Text style={[styles.sectionTitle, { color: text, fontFamily: Fonts?.rounded }]}>
                   {title}
                 </Text>
+                {statsLabel ? (
+                  <Text style={[styles.statsLine, { color: muted, fontFamily: Fonts?.rounded }]}>
+                    {statsLabel}
+                  </Text>
+                ) : null}
 
                 <View style={styles.row}>
                   <View style={styles.rowText}>
@@ -573,6 +596,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: '900',
+    marginBottom: 4,
+  },
+  statsLine: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 2,
     marginBottom: 4,
   },
   row: {
