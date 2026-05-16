@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -33,7 +33,23 @@ export default function OnboardingScreen() {
   const [monster, setMonster] = useState<Monster>('purple');
 
   const t = useT();
-  const { addUser } = useSettings();
+  const { addUser, setPreviewMonster } = useSettings();
+
+  // Always clear the theme preview when leaving the screen so the previous
+  // monster is restored if the kid backs out without creating a user.
+  useEffect(
+    () => () => {
+      setPreviewMonster(null);
+    },
+    [setPreviewMonster],
+  );
+
+  // Push the picker's selection into the preview so the whole page retints
+  // live as the kid taps different monsters. Only active on the picker step.
+  useEffect(() => {
+    if (step === 2) setPreviewMonster(monster);
+    else setPreviewMonster(null);
+  }, [step, monster, setPreviewMonster]);
 
   const primary = useThemeColor({}, 'primary');
   const primaryDeep = useThemeColor({}, 'primaryDeep');
