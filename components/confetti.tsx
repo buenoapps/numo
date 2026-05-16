@@ -23,7 +23,7 @@ type Props = {
 
 const COLORS = ['#FACC15', '#22C55E', '#3B82F6', '#EC4899', '#F97316', '#7C3AED', '#FFFFFF'];
 
-export function Confetti({ triggerKey, count = 32, duration = 2200 }: Props) {
+export function Confetti({ triggerKey, count = 128, duration = 2200 }: Props) {
   // Re-randomize particles only when the key changes, so a single burst
   // keeps stable positions/colors for its lifetime.
   const particles = useMemo(
