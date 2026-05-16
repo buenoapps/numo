@@ -177,6 +177,11 @@ function SettingsBody() {
     resetSettings,
   } = useSettings();
   const t = useT();
+
+  // Live slider value per page. Lets the "Up to N" label update as the user
+  // drags, without committing intermediate values to AsyncStorage on every
+  // tick. Cleared on slide-complete (when the real config takes over).
+  const [dragUntil, setDragUntil] = useState<Partial<Record<PageKey, number>>>({});
   const text = useThemeColor({}, 'text');
   const muted = useThemeColor({}, 'textMuted');
   const primary = useThemeColor({}, 'primary');
@@ -434,17 +439,29 @@ function SettingsBody() {
 
                 <View style={styles.sliderRow}>
                   <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
-                    {t('untilLabel', { value: config.until })}
+                    {t('untilLabel', { value: dragUntil[section.page] ?? config.until })}
                   </Text>
                   <Slider
-                    accessibilityLabel={t('a11y.untilFor', { label: title, value: config.until })}
+                    accessibilityLabel={t('a11y.untilFor', {
+                      label: title,
+                      value: dragUntil[section.page] ?? config.until,
+                    })}
                     minimumValue={section.range.min}
                     maximumValue={section.range.max}
                     step={section.range.step}
                     value={config.until}
-                    onSlidingComplete={(v) =>
-                      setPageConfig(section.page, { until: Math.round(v) })
+                    onValueChange={(v) =>
+                      setDragUntil((d) => ({ ...d, [section.page]: Math.round(v) }))
                     }
+                    onSlidingComplete={(v) => {
+                      const next = Math.round(v);
+                      setPageConfig(section.page, { until: next });
+                      setDragUntil((d) => {
+                        const copy = { ...d };
+                        delete copy[section.page];
+                        return copy;
+                      });
+                    }}
                     disabled={!hydrated || !config.enabled}
                     minimumTrackTintColor={primary}
                     maximumTrackTintColor="#D6D2EA"
