@@ -21,9 +21,12 @@ export default function NumbersScreen() {
   const muted = useThemeColor({}, 'textMuted');
   const t = useT();
   const { settings } = useSettings();
-  const max = settings.numbersRange;
-  const numbers = Array.from({ length: max + 1 }, (_, i) => i);
-  const cols = max > 10 ? 5 : 4;
+  const { until, includeZero } = settings.pages.numbers;
+  const start = includeZero ? 0 : 1;
+  const numbers = Array.from({ length: until - start + 1 }, (_, i) => i + start);
+  // Pick a column count so tiles stay readable: 4 cols for ≤ 11 tiles,
+  // then 5, 6, or 7 as the range grows.
+  const cols = numbers.length <= 11 ? 4 : numbers.length <= 30 ? 5 : numbers.length <= 60 ? 6 : 7;
 
   return (
     <ThemedView style={styles.flex}>
@@ -80,8 +83,8 @@ function NumberTile({ value, cols }: { value: number; cols: number }) {
   };
 
   const tileWidth = `${100 / cols}%` as const;
-  const fontSize = cols === 5 ? 32 : 40;
-  const lineHeight = cols === 5 ? 38 : 48;
+  const fontSize = cols >= 7 ? 22 : cols === 6 ? 26 : cols === 5 ? 32 : 40;
+  const lineHeight = fontSize + 8;
 
   return (
     <Animated.View style={[styles.tileWrap, { width: tileWidth }, animatedStyle]}>

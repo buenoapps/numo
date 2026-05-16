@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -18,41 +18,25 @@ import { generateProblem, type Problem } from '@/lib/problems';
 import { useSettings } from '@/lib/settings';
 import { useSuccessSound } from '@/lib/sounds';
 
-const NEXT_DELAY_MS = 1800;
+const NEXT_DELAY_MS = 1500;
 const WRONG_RESET_MS = 500;
-/**
- * Above this, both operands stop getting a dot grid — too many dots clutter
- * the screen. The numeric equation is enough for larger numbers.
- */
-const MAX_DOTS_PER_GROUP = 10;
 
-type MathOp = 'add' | 'sub';
-
-function parseOp(raw: string | string[] | undefined): MathOp {
-  const value = Array.isArray(raw) ? raw[0] : raw;
-  return value === 'sub' ? 'sub' : 'add';
-}
-
-export default function PlayScreen() {
-  const params = useLocalSearchParams<{ op?: string }>();
-  const op = parseOp(params.op);
-
+export default function CountScreen() {
   const primary = useThemeColor({}, 'primary');
-  const text = useThemeColor({}, 'text');
   const muted = useThemeColor({}, 'textMuted');
   const t = useT();
 
   const { settings } = useSettings();
-  const pageConfig = settings.pages[op];
+  const pageConfig = settings.pages.count;
 
   const [problem, setProblem] = useState<Problem>(() =>
-    generateProblem(op, { until: pageConfig.until, includeZero: pageConfig.includeZero }),
+    generateProblem('count', { until: pageConfig.until, includeZero: pageConfig.includeZero }),
   );
   const [streak, setStreak] = useState(0);
   const [wrongChoice, setWrongChoice] = useState<number | null>(null);
   const [correctRevealed, setCorrectRevealed] = useState(false);
   const [trackedKey, setTrackedKey] = useState(
-    `${op}:${pageConfig.until}:${pageConfig.includeZero}`,
+    `${pageConfig.until}:${pageConfig.includeZero}`,
   );
 
   const playSuccess = useSuccessSound();
@@ -73,13 +57,11 @@ export default function PlayScreen() {
     [settings.soundsEnabled],
   );
 
-  // Reset the round when the mode or its config changes — render-time
-  // "adjust state on prop change" pattern, not an effect.
-  const currentKey = `${op}:${pageConfig.until}:${pageConfig.includeZero}`;
+  const currentKey = `${pageConfig.until}:${pageConfig.includeZero}`;
   if (trackedKey !== currentKey) {
     setTrackedKey(currentKey);
     setProblem(
-      generateProblem(op, { until: pageConfig.until, includeZero: pageConfig.includeZero }),
+      generateProblem('count', { until: pageConfig.until, includeZero: pageConfig.includeZero }),
     );
     setCorrectRevealed(false);
     setWrongChoice(null);
@@ -98,20 +80,13 @@ export default function PlayScreen() {
     };
   }, []);
 
-  // Read each new problem aloud when it appears.
-  useEffect(() => {
-    if (correctRevealed) return;
-    const opWord = problem.op === 'add' ? '+' : '−';
-    speak(`${problem.a} ${opWord} ${problem.b}`);
-  }, [problem, correctRevealed, speak]);
-
   const nextProblem = useCallback(() => {
     setProblem(
-      generateProblem(op, { until: pageConfig.until, includeZero: pageConfig.includeZero }),
+      generateProblem('count', { until: pageConfig.until, includeZero: pageConfig.includeZero }),
     );
     setCorrectRevealed(false);
     setWrongChoice(null);
-  }, [op, pageConfig.until, pageConfig.includeZero]);
+  }, [pageConfig.until, pageConfig.includeZero]);
 
   const onAnswer = useCallback(
     (value: number) => {
@@ -123,8 +98,7 @@ export default function PlayScreen() {
         setCorrectRevealed(true);
         setStreak((s) => s + 1);
         playSuccess();
-        const opWord = problem.op === 'add' ? '+' : '−';
-        speak(`${problem.a} ${opWord} ${problem.b} = ${problem.answer}`);
+        speak(String(problem.answer));
         if (nextTimer.current) clearTimeout(nextTimer.current);
         nextTimer.current = setTimeout(nextProblem, NEXT_DELAY_MS);
       } else {
@@ -133,14 +107,10 @@ export default function PlayScreen() {
         wrongTimer.current = setTimeout(() => setWrongChoice(null), WRONG_RESET_MS);
       }
     },
-    [correctRevealed, problem, nextProblem, playSuccess, speak],
+    [correctRevealed, problem.answer, nextProblem, playSuccess, speak],
   );
 
   const mood: NumoMood = correctRevealed ? 'happy' : wrongChoice !== null ? 'oops' : 'thinking';
-  const opSymbol = problem.op === 'add' ? '+' : '−';
-  const title = problem.op === 'add' ? t('add') : t('subtract');
-  const showDots =
-    problem.a <= MAX_DOTS_PER_GROUP && problem.b <= MAX_DOTS_PER_GROUP;
 
   return (
     <ThemedView style={styles.flex}>
@@ -160,31 +130,17 @@ export default function PlayScreen() {
           <View style={styles.back} />
         </View>
 
-        <Text style={[styles.modeLabel, { color: muted, fontFamily: Fonts?.rounded }]}>{title}</Text>
+        <Text style={[styles.title, { color: muted, fontFamily: Fonts?.rounded }]}>
+          {t('countTitle')}
+        </Text>
 
         <View style={styles.mascot}>
           <Numo mood={mood} size={140} />
         </View>
 
-        {showDots ? (
-          <View style={styles.visualRow}>
-            {problem.op === 'add' ? (
-              <>
-                <DotGroup count={problem.a} />
-                <Text style={[styles.opGlyph, { color: muted, fontFamily: Fonts?.rounded }]}>+</Text>
-                <DotGroup count={problem.b} />
-              </>
-            ) : (
-              <DotGroup count={problem.a} removed={problem.b} />
-            )}
-          </View>
-        ) : (
-          <View style={styles.visualSpacer} />
-        )}
-
-        <Text style={[styles.equation, { color: text, fontFamily: Fonts?.rounded }]}>
-          {problem.a} {opSymbol} {problem.b} = ?
-        </Text>
+        <View style={styles.visualRow}>
+          <DotGroup count={problem.a} size={28} />
+        </View>
 
         <View style={styles.choices}>
           <View style={styles.choiceRow}>
@@ -247,39 +203,24 @@ const styles = StyleSheet.create({
     lineHeight: 40,
     fontWeight: '900',
   },
-  modeLabel: {
+  title: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginTop: 4,
+    marginVertical: 8,
+    paddingHorizontal: 24,
   },
   mascot: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 8,
+    marginVertical: 4,
   },
   visualRow: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 80,
-    paddingHorizontal: 8,
-    gap: 12,
-  },
-  visualSpacer: {
-    height: 24,
-  },
-  opGlyph: {
-    fontSize: 36,
-    fontWeight: '900',
-  },
-  equation: {
-    fontSize: 48,
-    fontWeight: '900',
-    textAlign: 'center',
-    marginVertical: 12,
+    minHeight: 120,
+    paddingHorizontal: 16,
+    marginBottom: 8,
   },
   choices: {
     paddingHorizontal: 8,

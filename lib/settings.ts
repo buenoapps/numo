@@ -3,31 +3,63 @@ import { createContext, createElement, useContext, useEffect, useState, type Rea
 
 import { applyLocale, type LocaleOverride } from '@/lib/i18n';
 
-const STORAGE_KEY = 'numo.settings.v1';
+/**
+ * Stored under a versioned key so changes to the shape don't have to migrate
+ * — bumping the version simply resets parents to the latest defaults.
+ */
+const STORAGE_KEY = 'numo.settings.v2';
 
-export type NumbersRange = 10 | 21;
+export type PageKey = 'numbers' | 'count' | 'add' | 'sub';
+
+export type PageConfig = {
+  /** Show this page on Home and let the user open it. */
+  enabled: boolean;
+  /** Include 0 in the value range (addends / minuend / count / shown number). */
+  includeZero: boolean;
+  /** Upper bound. Semantics vary slightly per page (see callers). */
+  until: number;
+};
 
 export type Settings = {
-  subtractionEnabled: boolean;
+  pages: Record<PageKey, PageConfig>;
   soundsEnabled: boolean;
   languageOverride: LocaleOverride;
-  numbersRange: NumbersRange;
 };
 
 const DEFAULTS: Settings = {
-  subtractionEnabled: false,
+  pages: {
+    numbers: { enabled: true, includeZero: true, until: 10 },
+    count: { enabled: true, includeZero: true, until: 10 },
+    add: { enabled: true, includeZero: true, until: 10 },
+    sub: { enabled: false, includeZero: true, until: 10 },
+  },
   soundsEnabled: true,
   languageOverride: 'device',
-  numbersRange: 10,
 };
+
+function mergePageConfig(defaults: PageConfig, partial: Partial<PageConfig> | undefined): PageConfig {
+  return { ...defaults, ...(partial ?? {}) };
+}
+
+function fromStorage(parsed: Partial<Settings>): Settings {
+  return {
+    soundsEnabled: parsed.soundsEnabled ?? DEFAULTS.soundsEnabled,
+    languageOverride: parsed.languageOverride ?? DEFAULTS.languageOverride,
+    pages: {
+      numbers: mergePageConfig(DEFAULTS.pages.numbers, parsed.pages?.numbers),
+      count: mergePageConfig(DEFAULTS.pages.count, parsed.pages?.count),
+      add: mergePageConfig(DEFAULTS.pages.add, parsed.pages?.add),
+      sub: mergePageConfig(DEFAULTS.pages.sub, parsed.pages?.sub),
+    },
+  };
+}
 
 type SettingsContextValue = {
   settings: Settings;
   hydrated: boolean;
-  setSubtractionEnabled: (enabled: boolean) => void;
+  setPageConfig: (page: PageKey, patch: Partial<PageConfig>) => void;
   setSoundsEnabled: (enabled: boolean) => void;
   setLanguageOverride: (override: LocaleOverride) => void;
-  setNumbersRange: (range: NumbersRange) => void;
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -44,9 +76,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         let next = DEFAULTS;
         if (raw) {
           try {
-            next = { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) };
+            next = fromStorage(JSON.parse(raw) as Partial<Settings>);
           } catch {
-            // ignore malformed payload, fall back to defaults
+            // malformed payload — fall back to defaults
           }
         }
         setSettings(next);
@@ -69,16 +101,19 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const value: SettingsContextValue = {
     settings,
     hydrated,
-    setSubtractionEnabled: (enabled) => persist({ ...settings, subtractionEnabled: enabled }),
+    setPageConfig: (page, patch) =>
+      persist({
+        ...settings,
+        pages: {
+          ...settings.pages,
+          [page]: { ...settings.pages[page], ...patch },
+        },
+      }),
     setSoundsEnabled: (enabled) => persist({ ...settings, soundsEnabled: enabled }),
     setLanguageOverride: (override) => {
-      // Apply BEFORE persist so the locale listener and the settings update
-      // are batched into the same React update; consumers see the new locale
-      // on the next render rather than flashing the old one first.
       applyLocale(override);
       persist({ ...settings, languageOverride: override });
     },
-    setNumbersRange: (range) => persist({ ...settings, numbersRange: range }),
   };
 
   return createElement(SettingsContext.Provider, { value }, children);

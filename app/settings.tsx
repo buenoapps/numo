@@ -1,3 +1,4 @@
+import Slider from '@react-native-community/slider';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,16 +7,29 @@ import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useT, type LocaleOverride } from '@/lib/i18n';
-import { useSettings, type NumbersRange } from '@/lib/settings';
+import { useSettings, type PageKey } from '@/lib/settings';
+
+type PageSectionSpec = {
+  page: PageKey;
+  titleKey: 'sectionNumbers' | 'sectionCount' | 'sectionAdd' | 'sectionSub';
+  /** Slider min, max, step. */
+  range: { min: number; max: number; step: number };
+};
+
+const PAGE_SECTIONS: PageSectionSpec[] = [
+  { page: 'numbers', titleKey: 'sectionNumbers', range: { min: 10, max: 100, step: 10 } },
+  { page: 'count', titleKey: 'sectionCount', range: { min: 4, max: 10, step: 1 } },
+  { page: 'add', titleKey: 'sectionAdd', range: { min: 10, max: 100, step: 10 } },
+  { page: 'sub', titleKey: 'sectionSub', range: { min: 10, max: 100, step: 10 } },
+];
 
 export default function SettingsScreen() {
   const {
     settings,
     hydrated,
-    setSubtractionEnabled,
+    setPageConfig,
     setSoundsEnabled,
     setLanguageOverride,
-    setNumbersRange,
   } = useSettings();
   const t = useT();
   const text = useThemeColor({}, 'text');
@@ -35,11 +49,6 @@ export default function SettingsScreen() {
     { value: 'pt', label: 'Português', flag: '🇵🇹' },
     { value: 'pl', label: 'Polski', flag: '🇵🇱' },
     { value: 'hr', label: 'Hrvatski', flag: '🇭🇷' },
-  ];
-
-  const rangeOptions: { value: NumbersRange; label: string }[] = [
-    { value: 10, label: '0–10' },
-    { value: 21, label: '0–21' },
   ];
 
   return (
@@ -69,31 +78,84 @@ export default function SettingsScreen() {
             {t('forGrownUps')}
           </Text>
 
-          <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
-            <View style={styles.row}>
-              <View style={styles.rowText}>
-                <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
-                  {t('subtractionLabel')}
+          {PAGE_SECTIONS.map((section) => {
+            const config = settings.pages[section.page];
+            const title = t(section.titleKey);
+            return (
+              <View
+                key={section.page}
+                style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}
+              >
+                <Text style={[styles.sectionTitle, { color: text, fontFamily: Fonts?.rounded }]}>
+                  {title}
                 </Text>
-                <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
-                  {t('subtractionDesc')}
-                </Text>
+
+                <View style={styles.row}>
+                  <View style={styles.rowText}>
+                    <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
+                      {t('show')}
+                    </Text>
+                    <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
+                      {t('showDesc')}
+                    </Text>
+                  </View>
+                  <Switch
+                    accessibilityLabel={t('a11y.enablePage', { label: title })}
+                    value={config.enabled}
+                    onValueChange={(v) => setPageConfig(section.page, { enabled: v })}
+                    disabled={!hydrated}
+                    trackColor={{ true: primary, false: '#D6D2EA' }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+
+                <View style={styles.row}>
+                  <View style={styles.rowText}>
+                    <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
+                      {t('includeZero')}
+                    </Text>
+                    <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
+                      {t('includeZeroDesc')}
+                    </Text>
+                  </View>
+                  <Switch
+                    accessibilityLabel={t('a11y.includeZeroFor', { label: title })}
+                    value={config.includeZero}
+                    onValueChange={(v) => setPageConfig(section.page, { includeZero: v })}
+                    disabled={!hydrated || !config.enabled}
+                    trackColor={{ true: primary, false: '#D6D2EA' }}
+                    thumbColor="#FFFFFF"
+                  />
+                </View>
+
+                <View style={styles.sliderRow}>
+                  <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
+                    {t('untilLabel', { value: config.until })}
+                  </Text>
+                  <Slider
+                    accessibilityLabel={t('a11y.untilFor', { label: title, value: config.until })}
+                    minimumValue={section.range.min}
+                    maximumValue={section.range.max}
+                    step={section.range.step}
+                    value={config.until}
+                    onSlidingComplete={(v) =>
+                      setPageConfig(section.page, { until: Math.round(v) })
+                    }
+                    disabled={!hydrated || !config.enabled}
+                    minimumTrackTintColor={primary}
+                    maximumTrackTintColor="#D6D2EA"
+                    thumbTintColor={primary}
+                    style={styles.slider}
+                  />
+                </View>
               </View>
-              <Switch
-                accessibilityLabel={t('a11y.enableSubtraction')}
-                value={settings.subtractionEnabled}
-                onValueChange={setSubtractionEnabled}
-                disabled={!hydrated}
-                trackColor={{ true: primary, false: '#D6D2EA' }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
-          </View>
+            );
+          })}
 
           <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
             <View style={styles.row}>
               <View style={styles.rowText}>
-                <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
+                <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
                   {t('soundsLabel')}
                 </Text>
                 <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
@@ -112,49 +174,7 @@ export default function SettingsScreen() {
           </View>
 
           <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
-            <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
-              {t('numbersRangeLabel')}
-            </Text>
-            <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
-              {t('numbersRangeDesc')}
-            </Text>
-            <View style={styles.chipRow}>
-              {rangeOptions.map((opt) => {
-                const active = settings.numbersRange === opt.value;
-                return (
-                  <Pressable
-                    key={opt.value}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                    disabled={!hydrated}
-                    onPress={() => setNumbersRange(opt.value)}
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: active ? primary : background,
-                        borderColor: active ? primary : '#D6D2EA',
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.chipText,
-                        {
-                          color: active ? '#FFFFFF' : text,
-                          fontFamily: Fonts?.rounded,
-                        },
-                      ]}
-                    >
-                      {opt.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-
-          <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
-            <Text style={[styles.rowTitle, { color: text, fontFamily: Fonts?.rounded }]}>
+            <Text style={[styles.sectionTitle, { color: text, fontFamily: Fonts?.rounded }]}>
               {t('language')}
             </Text>
             <View style={styles.chipRow}>
@@ -243,23 +263,36 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    marginBottom: 4,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
+    paddingTop: 12,
   },
   rowText: {
     flex: 1,
   },
-  rowTitle: {
-    fontSize: 20,
-    fontWeight: '800',
+  rowLabel: {
+    fontSize: 17,
+    fontWeight: '700',
   },
   rowSub: {
-    fontSize: 14,
-    marginTop: 4,
-    lineHeight: 20,
+    fontSize: 13,
+    marginTop: 2,
+    lineHeight: 18,
+  },
+  sliderRow: {
+    paddingTop: 12,
+  },
+  slider: {
+    width: '100%',
+    height: 36,
   },
   chipRow: {
     flexDirection: 'row',
