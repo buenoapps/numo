@@ -42,7 +42,7 @@ export default function PlayScreen() {
   const muted = useThemeColor({}, 'textMuted');
   const t = useT();
 
-  const { settings } = useSettings();
+  const { settings, incrementStats } = useSettings();
   const pageConfig = settings.pages[op];
 
   const [problem, setProblem] = useState<Problem>(() =>
@@ -51,6 +51,7 @@ export default function PlayScreen() {
   const [streak, setStreak] = useState(0);
   const [wrongChoice, setWrongChoice] = useState<number | null>(null);
   const [correctRevealed, setCorrectRevealed] = useState(false);
+  const [firstAnswerLogged, setFirstAnswerLogged] = useState(false);
   const [trackedKey, setTrackedKey] = useState(
     `${op}:${pageConfig.until}:${pageConfig.includeZero}`,
   );
@@ -84,6 +85,7 @@ export default function PlayScreen() {
     setCorrectRevealed(false);
     setWrongChoice(null);
     setStreak(0);
+    setFirstAnswerLogged(false);
   }
 
   useEffect(() => {
@@ -111,6 +113,7 @@ export default function PlayScreen() {
     );
     setCorrectRevealed(false);
     setWrongChoice(null);
+    setFirstAnswerLogged(false);
   }, [op, pageConfig.until, pageConfig.includeZero]);
 
   const onAnswer = useCallback(
@@ -119,7 +122,16 @@ export default function PlayScreen() {
 
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
-      if (value === problem.answer) {
+      const right = value === problem.answer;
+
+      // Only the very first answer for this problem counts towards stats —
+      // a kid who retries after a miss only logs the original wrong tick.
+      if (!firstAnswerLogged) {
+        incrementStats(op, right);
+        setFirstAnswerLogged(true);
+      }
+
+      if (right) {
         setCorrectRevealed(true);
         setStreak((s) => s + 1);
         playSuccess();
@@ -133,7 +145,16 @@ export default function PlayScreen() {
         wrongTimer.current = setTimeout(() => setWrongChoice(null), WRONG_RESET_MS);
       }
     },
-    [correctRevealed, problem, nextProblem, playSuccess, speak],
+    [
+      correctRevealed,
+      problem,
+      nextProblem,
+      playSuccess,
+      speak,
+      firstAnswerLogged,
+      incrementStats,
+      op,
+    ],
   );
 
   const mood: NumoMood = correctRevealed ? 'happy' : wrongChoice !== null ? 'oops' : 'thinking';

@@ -26,7 +26,7 @@ export default function CountScreen() {
   const muted = useThemeColor({}, 'textMuted');
   const t = useT();
 
-  const { settings } = useSettings();
+  const { settings, incrementStats } = useSettings();
   const pageConfig = settings.pages.count;
 
   const [problem, setProblem] = useState<Problem>(() =>
@@ -35,6 +35,7 @@ export default function CountScreen() {
   const [streak, setStreak] = useState(0);
   const [wrongChoice, setWrongChoice] = useState<number | null>(null);
   const [correctRevealed, setCorrectRevealed] = useState(false);
+  const [firstAnswerLogged, setFirstAnswerLogged] = useState(false);
   const [trackedKey, setTrackedKey] = useState(
     `${pageConfig.until}:${pageConfig.includeZero}`,
   );
@@ -66,6 +67,7 @@ export default function CountScreen() {
     setCorrectRevealed(false);
     setWrongChoice(null);
     setStreak(0);
+    setFirstAnswerLogged(false);
   }
 
   useEffect(() => {
@@ -86,6 +88,7 @@ export default function CountScreen() {
     );
     setCorrectRevealed(false);
     setWrongChoice(null);
+    setFirstAnswerLogged(false);
   }, [pageConfig.until, pageConfig.includeZero]);
 
   const onAnswer = useCallback(
@@ -94,7 +97,13 @@ export default function CountScreen() {
 
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 
-      if (value === problem.answer) {
+      const right = value === problem.answer;
+      if (!firstAnswerLogged) {
+        incrementStats('count', right);
+        setFirstAnswerLogged(true);
+      }
+
+      if (right) {
         setCorrectRevealed(true);
         setStreak((s) => s + 1);
         playSuccess();
@@ -107,7 +116,15 @@ export default function CountScreen() {
         wrongTimer.current = setTimeout(() => setWrongChoice(null), WRONG_RESET_MS);
       }
     },
-    [correctRevealed, problem.answer, nextProblem, playSuccess, speak],
+    [
+      correctRevealed,
+      problem.answer,
+      nextProblem,
+      playSuccess,
+      speak,
+      firstAnswerLogged,
+      incrementStats,
+    ],
   );
 
   const mood: NumoMood = correctRevealed ? 'happy' : wrongChoice !== null ? 'oops' : 'thinking';
