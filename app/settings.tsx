@@ -1,6 +1,6 @@
 import Slider from '@react-native-community/slider';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedView } from '@/components/themed-view';
@@ -11,13 +11,13 @@ import { useSettings, type PageKey } from '@/lib/settings';
 
 type PageSectionSpec = {
   page: PageKey;
-  titleKey: 'sectionNumbers' | 'sectionCount' | 'sectionAdd' | 'sectionSub';
+  titleKey: 'sectionListen' | 'sectionCount' | 'sectionAdd' | 'sectionSub';
   /** Slider min, max, step. */
   range: { min: number; max: number; step: number };
 };
 
 const PAGE_SECTIONS: PageSectionSpec[] = [
-  { page: 'numbers', titleKey: 'sectionNumbers', range: { min: 10, max: 100, step: 10 } },
+  { page: 'listen', titleKey: 'sectionListen', range: { min: 10, max: 100, step: 10 } },
   { page: 'count', titleKey: 'sectionCount', range: { min: 4, max: 10, step: 1 } },
   { page: 'add', titleKey: 'sectionAdd', range: { min: 10, max: 100, step: 10 } },
   { page: 'sub', titleKey: 'sectionSub', range: { min: 10, max: 100, step: 10 } },
@@ -30,14 +30,17 @@ export default function SettingsScreen() {
     setPageConfig,
     setSoundsEnabled,
     setLanguageOverride,
+    resetSettings,
   } = useSettings();
   const t = useT();
   const text = useThemeColor({}, 'text');
   const muted = useThemeColor({}, 'textMuted');
   const primary = useThemeColor({}, 'primary');
+  const primaryDeep = useThemeColor({}, 'primaryDeep');
   const card = useThemeColor({}, 'card');
   const shadow = useThemeColor({}, 'cardShadow');
   const background = useThemeColor({}, 'background');
+  const wrong = useThemeColor({}, 'wrong');
 
   const languageOptions: { value: LocaleOverride; label: string; flag: string }[] = [
     { value: 'device', label: t('languageSystem'), flag: '🌐' },
@@ -50,6 +53,17 @@ export default function SettingsScreen() {
     { value: 'pl', label: 'Polski', flag: '🇵🇱' },
     { value: 'hr', label: 'Hrvatski', flag: '🇭🇷' },
   ];
+
+  const onRestoreDefaults = () => {
+    Alert.alert(t('restoreDefaults'), t('restoreDefaultsDesc'), [
+      { text: '×', style: 'cancel' },
+      {
+        text: t('restoreDefaults'),
+        style: 'destructive',
+        onPress: () => resetSettings(),
+      },
+    ]);
+  };
 
   return (
     <ThemedView style={styles.flex}>
@@ -78,6 +92,70 @@ export default function SettingsScreen() {
             {t('forGrownUps')}
           </Text>
 
+          {/* Sounds — moved to the top. */}
+          <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
+                  {t('soundsLabel')}
+                </Text>
+                <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
+                  {t('soundsDesc')}
+                </Text>
+              </View>
+              <Switch
+                accessibilityLabel={t('a11y.enableSounds')}
+                value={settings.soundsEnabled}
+                onValueChange={setSoundsEnabled}
+                disabled={!hydrated}
+                trackColor={{ true: primary, false: '#D6D2EA' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+          </View>
+
+          {/* Language — moved to the top. */}
+          <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
+            <Text style={[styles.sectionTitle, { color: text, fontFamily: Fonts?.rounded }]}>
+              {t('language')}
+            </Text>
+            <View style={styles.chipRow}>
+              {languageOptions.map((opt) => {
+                const active = settings.languageOverride === opt.value;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('a11y.pickLanguage', { label: opt.label })}
+                    accessibilityState={{ selected: active }}
+                    disabled={!hydrated}
+                    onPress={() => setLanguageOverride(opt.value)}
+                    style={[
+                      styles.chip,
+                      {
+                        backgroundColor: active ? primary : background,
+                        borderColor: active ? primary : '#D6D2EA',
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.chipText,
+                        {
+                          color: active ? '#FFFFFF' : text,
+                          fontFamily: Fonts?.rounded,
+                        },
+                      ]}
+                    >
+                      {opt.flag} {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Per-page complexity controls. */}
           {PAGE_SECTIONS.map((section) => {
             const config = settings.pages[section.page];
             const title = t(section.titleKey);
@@ -152,66 +230,26 @@ export default function SettingsScreen() {
             );
           })}
 
-          <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
-            <View style={styles.row}>
-              <View style={styles.rowText}>
-                <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
-                  {t('soundsLabel')}
-                </Text>
-                <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
-                  {t('soundsDesc')}
-                </Text>
-              </View>
-              <Switch
-                accessibilityLabel={t('a11y.enableSounds')}
-                value={settings.soundsEnabled}
-                onValueChange={setSoundsEnabled}
-                disabled={!hydrated}
-                trackColor={{ true: primary, false: '#D6D2EA' }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
-          </View>
-
-          <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
-            <Text style={[styles.sectionTitle, { color: text, fontFamily: Fonts?.rounded }]}>
-              {t('language')}
+          {/* Restore defaults — bottom. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('a11y.restoreDefaults')}
+            disabled={!hydrated}
+            onPress={onRestoreDefaults}
+            style={[
+              styles.resetButton,
+              { backgroundColor: card, borderColor: wrong, shadowColor: primaryDeep ?? shadow },
+            ]}
+          >
+            <Text
+              style={[styles.resetButtonText, { color: wrong, fontFamily: Fonts?.rounded }]}
+            >
+              {t('restoreDefaults')}
             </Text>
-            <View style={styles.chipRow}>
-              {languageOptions.map((opt) => {
-                const active = settings.languageOverride === opt.value;
-                return (
-                  <Pressable
-                    key={opt.value}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('a11y.pickLanguage', { label: opt.label })}
-                    accessibilityState={{ selected: active }}
-                    disabled={!hydrated}
-                    onPress={() => setLanguageOverride(opt.value)}
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: active ? primary : background,
-                        borderColor: active ? primary : '#D6D2EA',
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.chipText,
-                        {
-                          color: active ? '#FFFFFF' : text,
-                          fontFamily: Fonts?.rounded,
-                        },
-                      ]}
-                    >
-                      {opt.flag} {opt.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
+            <Text style={[styles.resetButtonSub, { color: muted, fontFamily: Fonts?.rounded }]}>
+              {t('restoreDefaultsDesc')}
+            </Text>
+          </Pressable>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -309,5 +347,26 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 16,
     fontWeight: '700',
+  },
+  resetButton: {
+    marginTop: 24,
+    marginBottom: 8,
+    padding: 18,
+    borderRadius: 20,
+    borderWidth: 2,
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  resetButtonText: {
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  resetButtonSub: {
+    fontSize: 13,
+    marginTop: 4,
+    textAlign: 'center',
   },
 });

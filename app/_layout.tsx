@@ -17,7 +17,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="play" options={{ animation: 'fade' }} />
           <Stack.Screen name="count" options={{ animation: 'fade' }} />
-          <Stack.Screen name="numbers" options={{ animation: 'fade' }} />
+          <Stack.Screen name="listen" options={{ animation: 'fade' }} />
           <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
         </Stack>
         <StatusBar style="auto" />

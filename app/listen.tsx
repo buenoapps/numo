@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import * as Speech from 'expo-speech';
+import { Fragment } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -16,17 +17,35 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { getSpeechLocale, useT } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
 
-export default function NumbersScreen() {
+/**
+ * Bucket the visible digits into rows that read like place-value groups:
+ *  - if 0 is included, it sits alone on its own row
+ *  - then 1–10, 11–20, 21–30, etc. — each row capped at 10 tiles
+ */
+function bucketDigits(start: number, until: number): number[][] {
+  const groups: number[][] = [];
+  let cursor = start;
+  if (cursor === 0) {
+    groups.push([0]);
+    cursor = 1;
+  }
+  for (let lo = cursor; lo <= until; lo += 10) {
+    const hi = Math.min(lo + 9, until);
+    const row: number[] = [];
+    for (let n = lo; n <= hi; n++) row.push(n);
+    groups.push(row);
+  }
+  return groups;
+}
+
+export default function ListenScreen() {
   const primary = useThemeColor({}, 'primary');
   const muted = useThemeColor({}, 'textMuted');
   const t = useT();
   const { settings } = useSettings();
-  const { until, includeZero } = settings.pages.numbers;
+  const { until, includeZero } = settings.pages.listen;
   const start = includeZero ? 0 : 1;
-  const numbers = Array.from({ length: until - start + 1 }, (_, i) => i + start);
-  // Pick a column count so tiles stay readable: 4 cols for ≤ 11 tiles,
-  // then 5, 6, or 7 as the range grows.
-  const cols = numbers.length <= 11 ? 4 : numbers.length <= 30 ? 5 : numbers.length <= 60 ? 6 : 7;
+  const groups = bucketDigits(start, until);
 
   return (
     <ThemedView style={styles.flex}>
@@ -46,25 +65,36 @@ export default function NumbersScreen() {
         </View>
 
         <Text style={[styles.title, { color: muted, fontFamily: Fonts?.rounded }]}>
-          {t('numbersTitle')}
+          {t('listenTitle')}
         </Text>
 
         <ScrollView
           contentContainerStyle={styles.gridContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.grid}>
-            {numbers.map((n) => (
-              <NumberTile key={n} value={n} cols={cols} />
-            ))}
-          </View>
+          {groups.map((row, idx) => (
+            <Fragment key={`group-${idx}`}>
+              {idx > 0 ? <View style={styles.divider} /> : null}
+              <View style={styles.groupRow}>
+                {row.map((n) => (
+                  <NumberTile key={n} value={n} />
+                ))}
+                {/* Fill to a row of 10 so a partial group lines up with full ones. */}
+                {row.length > 1 && row.length < 10
+                  ? Array.from({ length: 10 - row.length }).map((_, i) => (
+                      <View key={`spacer-${idx}-${i}`} style={styles.tileWrap} />
+                    ))
+                  : null}
+              </View>
+            </Fragment>
+          ))}
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
 }
 
-function NumberTile({ value, cols }: { value: number; cols: number }) {
+function NumberTile({ value }: { value: number }) {
   const primary = useThemeColor({}, 'primary');
   const primaryDeep = useThemeColor({}, 'primaryDeep');
   const card = useThemeColor({}, 'card');
@@ -82,12 +112,8 @@ function NumberTile({ value, cols }: { value: number; cols: number }) {
     Speech.speak(String(value), { language: getSpeechLocale() });
   };
 
-  const tileWidth = `${100 / cols}%` as const;
-  const fontSize = cols >= 7 ? 22 : cols === 6 ? 26 : cols === 5 ? 32 : 40;
-  const lineHeight = fontSize + 8;
-
   return (
-    <Animated.View style={[styles.tileWrap, { width: tileWidth }, animatedStyle]}>
+    <Animated.View style={[styles.tileWrap, animatedStyle]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('a11y.speakNumber', { value })}
@@ -100,12 +126,7 @@ function NumberTile({ value, cols }: { value: number; cols: number }) {
         onPress={onPress}
         style={[styles.tile, { backgroundColor: card, shadowColor: primaryDeep ?? shadow }]}
       >
-        <Text
-          style={[
-            styles.tileText,
-            { color: primary, fontFamily: Fonts?.rounded, fontSize, lineHeight },
-          ]}
-        >
+        <Text style={[styles.tileText, { color: primary, fontFamily: Fonts?.rounded }]}>
           {value}
         </Text>
       </Pressable>
@@ -143,27 +164,37 @@ const styles = StyleSheet.create({
   gridContent: {
     paddingBottom: 24,
   },
-  grid: {
+  groupRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
+  divider: {
+    height: 1,
+    backgroundColor: '#D6D2EA',
+    marginVertical: 8,
+    marginHorizontal: 12,
+    opacity: 0.7,
+  },
   tileWrap: {
+    width: '20%',
     aspectRatio: 1,
-    padding: 6,
+    padding: 4,
   },
   tile: {
     flex: 1,
-    borderRadius: 18,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 3,
   },
   tileText: {
+    fontSize: 26,
+    lineHeight: 32,
     fontWeight: '900',
   },
 });

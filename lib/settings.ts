@@ -7,9 +7,9 @@ import { applyLocale, type LocaleOverride } from '@/lib/i18n';
  * Stored under a versioned key so changes to the shape don't have to migrate
  * — bumping the version simply resets parents to the latest defaults.
  */
-const STORAGE_KEY = 'numo.settings.v2';
+const STORAGE_KEY = 'numo.settings.v3';
 
-export type PageKey = 'numbers' | 'count' | 'add' | 'sub';
+export type PageKey = 'listen' | 'count' | 'add' | 'sub';
 
 export type PageConfig = {
   /** Show this page on Home and let the user open it. */
@@ -26,10 +26,10 @@ export type Settings = {
   languageOverride: LocaleOverride;
 };
 
-const DEFAULTS: Settings = {
+export const DEFAULT_SETTINGS: Settings = {
   pages: {
-    numbers: { enabled: true, includeZero: true, until: 10 },
-    count: { enabled: true, includeZero: true, until: 10 },
+    listen: { enabled: true, includeZero: true, until: 10 },
+    count: { enabled: true, includeZero: false, until: 10 },
     add: { enabled: true, includeZero: true, until: 10 },
     sub: { enabled: false, includeZero: true, until: 10 },
   },
@@ -43,13 +43,13 @@ function mergePageConfig(defaults: PageConfig, partial: Partial<PageConfig> | un
 
 function fromStorage(parsed: Partial<Settings>): Settings {
   return {
-    soundsEnabled: parsed.soundsEnabled ?? DEFAULTS.soundsEnabled,
-    languageOverride: parsed.languageOverride ?? DEFAULTS.languageOverride,
+    soundsEnabled: parsed.soundsEnabled ?? DEFAULT_SETTINGS.soundsEnabled,
+    languageOverride: parsed.languageOverride ?? DEFAULT_SETTINGS.languageOverride,
     pages: {
-      numbers: mergePageConfig(DEFAULTS.pages.numbers, parsed.pages?.numbers),
-      count: mergePageConfig(DEFAULTS.pages.count, parsed.pages?.count),
-      add: mergePageConfig(DEFAULTS.pages.add, parsed.pages?.add),
-      sub: mergePageConfig(DEFAULTS.pages.sub, parsed.pages?.sub),
+      listen: mergePageConfig(DEFAULT_SETTINGS.pages.listen, parsed.pages?.listen),
+      count: mergePageConfig(DEFAULT_SETTINGS.pages.count, parsed.pages?.count),
+      add: mergePageConfig(DEFAULT_SETTINGS.pages.add, parsed.pages?.add),
+      sub: mergePageConfig(DEFAULT_SETTINGS.pages.sub, parsed.pages?.sub),
     },
   };
 }
@@ -60,12 +60,13 @@ type SettingsContextValue = {
   setPageConfig: (page: PageKey, patch: Partial<PageConfig>) => void;
   setSoundsEnabled: (enabled: boolean) => void;
   setLanguageOverride: (override: LocaleOverride) => void;
+  resetSettings: () => void;
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<Settings>(DEFAULTS);
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -73,7 +74,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((raw) => {
         if (cancelled) return;
-        let next = DEFAULTS;
+        let next = DEFAULT_SETTINGS;
         if (raw) {
           try {
             next = fromStorage(JSON.parse(raw) as Partial<Settings>);
@@ -113,6 +114,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setLanguageOverride: (override) => {
       applyLocale(override);
       persist({ ...settings, languageOverride: override });
+    },
+    resetSettings: () => {
+      applyLocale(DEFAULT_SETTINGS.languageOverride);
+      setSettings(DEFAULT_SETTINGS);
+      AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
     },
   };
 
