@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -8,6 +8,7 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FloatingNumbers } from '@/components/floating-numbers';
+import { MonsterAvatar } from '@/components/monster-avatar';
 import { Numo } from '@/components/numo';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts } from '@/constants/theme';
@@ -36,7 +37,12 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const t = useT();
 
-  const { settings } = useSettings();
+  const { settings, activeUser, users, hydrated } = useSettings();
+
+  // First-launch redirect: no users yet -> onboarding.
+  if (hydrated && Object.keys(users).length === 0) {
+    return <Redirect href="/onboarding" />;
+  }
 
   const ctas: CtaSpec[] = [];
   if (settings.pages.listen.enabled) {
@@ -87,6 +93,23 @@ export default function HomeScreen() {
   return (
     <ThemedView style={styles.flex}>
       <FloatingNumbers />
+      {activeUser ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('a11y.profile', { name: activeUser.name })}
+          onPress={() => router.push('/users')}
+          style={[
+            styles.profile,
+            { backgroundColor: card, shadowColor: shadow, top: insets.top + 12 },
+          ]}
+          hitSlop={8}
+        >
+          <MonsterAvatar monster={activeUser.monster} size={36} />
+          <Text style={[styles.profileName, { color: text, fontFamily: Fonts?.rounded }]} numberOfLines={1}>
+            {activeUser.name}
+          </Text>
+        </Pressable>
+      ) : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('a11y.openSettings')}
@@ -180,6 +203,28 @@ const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: 26,
     fontWeight: '900',
+  },
+  profile: {
+    position: 'absolute',
+    left: 16,
+    height: 44,
+    paddingLeft: 4,
+    paddingRight: 14,
+    borderRadius: 22,
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    zIndex: 10,
+    maxWidth: 180,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  profileName: {
+    fontSize: 15,
+    fontWeight: '800',
+    maxWidth: 110,
   },
   content: {
     flex: 1,

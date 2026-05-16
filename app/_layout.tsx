@@ -19,6 +19,8 @@ export default function RootLayout() {
           <Stack.Screen name="count" options={{ animation: 'fade' }} />
           <Stack.Screen name="listen" options={{ animation: 'fade' }} />
           <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />
+          <Stack.Screen name="users" options={{ presentation: 'modal' }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
