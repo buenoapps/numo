@@ -16,7 +16,7 @@ import { useT } from '@/lib/i18n';
 import { useSettings } from '@/lib/settings';
 
 type CtaSpec = {
-  key: 'numbers' | 'count' | 'add' | 'sub';
+  key: 'listen' | 'count' | 'add' | 'sub';
   emoji: string;
   label: string;
   bg: string;
@@ -39,15 +39,15 @@ export default function HomeScreen() {
   const { settings } = useSettings();
 
   const ctas: CtaSpec[] = [];
-  if (settings.pages.numbers.enabled) {
+  if (settings.pages.listen.enabled) {
     ctas.push({
-      key: 'numbers',
+      key: 'listen',
       emoji: '🔊',
-      label: t('numbers'),
+      label: t('listen'),
       bg: card,
       fg: primary,
       shadowColor: shadow,
-      onPress: () => router.push('/numbers'),
+      onPress: () => router.push('/listen'),
     });
   }
   if (settings.pages.count.enabled) {
