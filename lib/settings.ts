@@ -127,6 +127,12 @@ type SettingsContextValue = {
   activeUser: User | null;
   /** The active user's settings (shortcut so screens stay simple). */
   settings: PerUserSettings;
+  /**
+   * Monster the UI should currently render with. Same as the active user's
+   * monster, but onboarding can override it transiently via
+   * `setPreviewMonster` to let the kid see the theme retint while picking.
+   */
+  effectiveMonster: Monster;
 
   // Active-user mutations
   setPageConfig: (page: PageKey, patch: Partial<PageConfig>) => void;
@@ -145,6 +151,13 @@ type SettingsContextValue = {
   addUser: (name: string, monster: Monster) => User;
   switchUser: (id: string) => void;
   deleteUser: (id: string) => void;
+
+  /**
+   * Set a transient theme preview that supersedes the active user's monster
+   * until cleared. Used by the onboarding monster picker so the page retints
+   * live while the kid is choosing. Pass `null` to clear.
+   */
+  setPreviewMonster: (monster: Monster | null) => void;
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -152,6 +165,7 @@ const SettingsContext = createContext<SettingsContextValue | null>(null);
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [store, setStore] = useState<Store>(EMPTY_STORE);
   const [hydrated, setHydrated] = useState(false);
+  const [previewMonster, setPreviewMonster] = useState<Monster | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -196,12 +210,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   };
 
   const activeUser: User | null = store.activeUserId ? store.users[store.activeUserId] ?? null : null;
+  const effectiveMonster: Monster = previewMonster ?? activeUser?.monster ?? DEFAULT_MONSTER;
 
   const value: SettingsContextValue = {
     hydrated,
     users: store.users,
     activeUser,
     settings: activeUser?.settings ?? DEFAULT_PER_USER_SETTINGS,
+    effectiveMonster,
+    setPreviewMonster,
 
     setPageConfig: (page, patch) =>
       updateActive((u) => ({

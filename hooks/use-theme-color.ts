@@ -16,9 +16,8 @@ export function useThemeColor(
 ) {
   const scheme = useColorScheme();
   const theme: 'light' | 'dark' = scheme === 'dark' ? 'dark' : 'light';
-  const { activeUser } = useSettings();
-  const monster = activeUser?.monster ?? DEFAULT_MONSTER;
+  const { effectiveMonster } = useSettings();
   const colorFromProps = props[theme];
   if (colorFromProps) return colorFromProps;
-  return MONSTER_PALETTES[monster][theme][colorName];
+  return MONSTER_PALETTES[effectiveMonster ?? DEFAULT_MONSTER][theme][colorName];
 }
