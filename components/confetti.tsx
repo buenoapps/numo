@@ -1,11 +1,12 @@
+import { Canvas, Group, RoundedRect } from '@shopify/react-native-skia';
 import { useEffect, useMemo } from 'react';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
-import Animated, {
+import { StyleSheet, useWindowDimensions } from 'react-native';
+import {
   cancelAnimation,
   Easing,
-  useAnimatedStyle,
+  type SharedValue,
+  useDerivedValue,
   useSharedValue,
-  withDelay,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -13,6 +14,9 @@ import Animated, {
  * One-shot confetti burst. Drop on top of any screen with `pointerEvents="none"`
  * so it doesn't block taps. Use the `triggerKey` prop with a counter — every
  * change re-mounts the component and re-runs the animation.
+ *
+ * Rendered through a single Skia <Canvas> so all particles composite in one
+ * GPU pass instead of one Animated.View per particle.
  */
 type Props = {
   triggerKey: number | string;
@@ -23,106 +27,90 @@ type Props = {
 
 const COLORS = ['#FACC15', '#22C55E', '#3B82F6', '#EC4899', '#F97316', '#7C3AED', '#FFFFFF'];
 
-export function Confetti({ triggerKey, count = 128, duration = 2200 }: Props) {
-  // Re-randomize particles only when the key changes, so a single burst
-  // keeps stable positions/colors for its lifetime.
-  const particles = useMemo(
-    () =>
-      Array.from({ length: count }, (_, i) => ({
-        id: `${triggerKey}-${i}`,
-        leftPct: Math.random() * 100,
-        size: 8 + Math.floor(Math.random() * 8),
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        drift: -40 + Math.random() * 80,
-        rotateEnd: -360 + Math.random() * 720,
-        delay: Math.floor(Math.random() * 250),
-        duration: Math.floor(duration * (0.7 + Math.random() * 0.5)),
-      })),
-    [triggerKey, count, duration],
-  );
-
-  return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      {particles.map((p) => (
-        <Particle key={p.id} {...p} />
-      ))}
-    </View>
-  );
-}
-
-function Particle({
-  id: _id,
-  leftPct,
-  size,
-  color,
-  drift,
-  rotateEnd,
-  delay,
-  duration,
-}: {
+type ParticleSpec = {
   id: string;
-  leftPct: number;
+  cx: number;
   size: number;
   color: string;
   drift: number;
   rotateEnd: number;
-  delay: number;
-  duration: number;
-}) {
-  const { height } = useWindowDimensions();
+  delayFrac: number;
+  durFrac: number;
+};
 
-  const y = useSharedValue(-40);
-  const x = useSharedValue(0);
-  const rot = useSharedValue(0);
-  const opacity = useSharedValue(1);
+export function Confetti({ triggerKey, count = 128, duration = 2200 }: Props) {
+  const { width, height } = useWindowDimensions();
+
+  const particles = useMemo<ParticleSpec[]>(
+    () =>
+      Array.from({ length: count }, (_, i) => ({
+        id: `${triggerKey}-${i}`,
+        cx: Math.random() * width,
+        size: 8 + Math.floor(Math.random() * 8),
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        drift: -40 + Math.random() * 80,
+        rotateEnd: (-360 + Math.random() * 720) * (Math.PI / 180),
+        delayFrac: Math.random() * 0.12,
+        durFrac: 0.7 + Math.random() * 0.5,
+      })),
+    [triggerKey, count, width],
+  );
+
+  // Single shared clock for every particle. Once it lands at 1 the derived
+  // values stop updating, so Skia stops issuing frames.
+  const progress = useSharedValue(0);
 
   useEffect(() => {
-    y.value = withDelay(
-      delay,
-      withTiming(height + 40, { duration, easing: Easing.in(Easing.cubic) }),
-    );
-    x.value = withDelay(delay, withTiming(drift, { duration }));
-    rot.value = withDelay(delay, withTiming(rotateEnd, { duration }));
-    opacity.value = withDelay(delay + duration - 400, withTiming(0, { duration: 400 }));
-    return () => {
-      cancelAnimation(y);
-      cancelAnimation(x);
-      cancelAnimation(rot);
-      cancelAnimation(opacity);
-    };
-    // Animation parameters are stable for a single burst (memoized upstream).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: y.value },
-      { translateX: x.value },
-      { rotate: `${rot.value}deg` },
-    ],
-    opacity: opacity.value,
-  }));
+    progress.value = 0;
+    progress.value = withTiming(1, { duration, easing: Easing.linear });
+    return () => cancelAnimation(progress);
+  }, [progress, duration]);
 
   return (
-    <Animated.View
-      style={[
-        styles.particle,
-        {
-          left: `${leftPct}%`,
-          width: size,
-          height: size * 0.5,
-          backgroundColor: color,
-          borderRadius: 2,
-        },
-        animatedStyle,
-      ]}
-    />
+    <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+      {particles.map((p) => (
+        <Particle key={p.id} spec={p} screenH={height} progress={progress} />
+      ))}
+    </Canvas>
   );
 }
 
-const styles = StyleSheet.create({
-  particle: {
-    position: 'absolute',
-    top: 0,
-  },
-});
+function Particle({
+  spec,
+  screenH,
+  progress,
+}: {
+  spec: ParticleSpec;
+  screenH: number;
+  progress: SharedValue<number>;
+}) {
+  const { cx, size, color, drift, rotateEnd, delayFrac, durFrac } = spec;
+  const startY = -40;
+  const endY = screenH + 40;
+  const halfW = size / 2;
+  const halfH = size * 0.25;
+
+  const transform = useDerivedValue(() => {
+    const local = (progress.value - delayFrac) / durFrac;
+    const t = local < 0 ? 0 : local > 1 ? 1 : local;
+    const eased = t * t * t;
+    return [
+      { translateX: cx + drift * t },
+      { translateY: startY + (endY - startY) * eased },
+      { rotate: rotateEnd * t },
+    ];
+  });
+
+  const opacity = useDerivedValue(() => {
+    const local = (progress.value - delayFrac) / durFrac;
+    if (local <= 0) return 1;
+    if (local >= 1) return 0;
+    return local < 0.82 ? 1 : 1 - (local - 0.82) / 0.18;
+  });
+
+  return (
+    <Group transform={transform} opacity={opacity}>
+      <RoundedRect x={-halfW} y={-halfH} width={size} height={size * 0.5} r={2} color={color} />
+    </Group>
+  );
+}

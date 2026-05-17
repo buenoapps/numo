@@ -63,7 +63,7 @@ Other commands:
 
 - TypeScript strict. Explicit prop types. No `any`.
 - Path alias `@/*` → repo root. Use it consistently.
-- **Animations**: Reanimated only. No RN `Animated`, no Lottie, no Skia, no SVG (no `react-native-svg`).
+- **Animations**: Reanimated is the default for layout/UI animations. No RN `Animated`, no Lottie, no SVG (no `react-native-svg`). Skia (`@shopify/react-native-skia`) is reserved for GPU-heavy effects that don't map well to per-View animations — currently just the confetti burst in `components/confetti.tsx`. Reach for Skia only when Reanimated isn't enough; default elsewhere is still Reanimated.
 - **Strings**: every visible label and accessibility text flows through `t()` from `@/lib/i18n`. Adding a new label means adding it to all seven locale blocks (`en`, `de`, `es`, `fr`, `it`, `zh`, `ja`). The brand name "Numo" is intentionally not translated.
 - **Settings**: persistent state lives in the single `Settings` shape in `lib/settings.ts`. Adding a setting means: extend the type, the `DEFAULTS`, and add a setter in the context value. No new AsyncStorage keys.
 - **Mascot art**: still a placeholder. Real PNG art is one edit inside `components/numo.tsx` — don't sprinkle `<Image>` or `require(...)` calls elsewhere.
