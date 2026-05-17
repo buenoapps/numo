@@ -108,7 +108,8 @@ function NumberTile({ value }: { value: number }) {
 
   const onPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    Speech.stop();
+    // Intentionally don't Speech.stop() — let tile taps queue so a quick
+    // sequence reads each number to completion instead of cutting off.
     Speech.speak(String(value), { language: getSpeechLocale() });
   };
 
