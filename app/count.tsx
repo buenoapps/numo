@@ -52,7 +52,9 @@ export default function CountScreen() {
     (phrase: string) => {
       if (!settings.soundCorrectEnabled) return;
       try {
-        Speech.stop();
+        // Intentionally don't Speech.stop() — let any in-flight utterance
+        // finish so the answer readout isn't cut off when the next problem
+        // appears. Speech queues naturally.
         Speech.speak(phrase, { language: getSpeechLocale() });
       } catch {
         // No TTS backend (e.g., web on some browsers) — silent fallback.
