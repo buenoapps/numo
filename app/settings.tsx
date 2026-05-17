@@ -172,7 +172,10 @@ function SettingsBody() {
     hydrated,
     activeUser,
     setPageConfig,
-    setSoundsEnabled,
+    setSoundCorrectEnabled,
+    setSoundWrongEnabled,
+    setHapticCorrectEnabled,
+    setHapticWrongEnabled,
     setLanguageOverride,
     resetSettings,
   } = useSettings();
@@ -301,21 +304,73 @@ function SettingsBody() {
             </View>
           </Pressable>
 
-          {/* Sounds */}
+          {/* Answer feedback: sound and haptic, per correct/wrong */}
           <View style={[styles.card, { backgroundColor: card, shadowColor: shadow }]}>
+            <Text style={[styles.sectionTitle, { color: text, fontFamily: Fonts?.rounded }]}>
+              {t('feedbackSection')}
+            </Text>
+            <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
+              {t('feedbackDesc')}
+            </Text>
+
             <View style={styles.row}>
               <View style={styles.rowText}>
                 <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
-                  {t('soundsLabel')}
-                </Text>
-                <Text style={[styles.rowSub, { color: muted, fontFamily: Fonts?.rounded }]}>
-                  {t('soundsDesc')}
+                  {t('soundCorrectLabel')}
                 </Text>
               </View>
               <Switch
-                accessibilityLabel={t('a11y.enableSounds')}
-                value={settings.soundsEnabled}
-                onValueChange={setSoundsEnabled}
+                accessibilityLabel={t('a11y.soundCorrect')}
+                value={settings.soundCorrectEnabled}
+                onValueChange={setSoundCorrectEnabled}
+                disabled={!hydrated}
+                trackColor={{ true: primary, false: '#D6D2EA' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
+                  {t('soundWrongLabel')}
+                </Text>
+              </View>
+              <Switch
+                accessibilityLabel={t('a11y.soundWrong')}
+                value={settings.soundWrongEnabled}
+                onValueChange={setSoundWrongEnabled}
+                disabled={!hydrated}
+                trackColor={{ true: primary, false: '#D6D2EA' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
+                  {t('hapticCorrectLabel')}
+                </Text>
+              </View>
+              <Switch
+                accessibilityLabel={t('a11y.hapticCorrect')}
+                value={settings.hapticCorrectEnabled}
+                onValueChange={setHapticCorrectEnabled}
+                disabled={!hydrated}
+                trackColor={{ true: primary, false: '#D6D2EA' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                <Text style={[styles.rowLabel, { color: text, fontFamily: Fonts?.rounded }]}>
+                  {t('hapticWrongLabel')}
+                </Text>
+              </View>
+              <Switch
+                accessibilityLabel={t('a11y.hapticWrong')}
+                value={settings.hapticWrongEnabled}
+                onValueChange={setHapticWrongEnabled}
                 disabled={!hydrated}
                 trackColor={{ true: primary, false: '#D6D2EA' }}
                 thumbColor="#FFFFFF"

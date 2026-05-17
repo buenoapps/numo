@@ -31,7 +31,7 @@ Other commands:
 
 - `_layout.tsx` — Root Stack. Wraps the tree in `SettingsProvider` and imports `@/lib/i18n` so the locale is set before any screen renders.
 - `index.tsx` — Home. Floating gear → `/settings`. Single "Let's Play!" CTA, or two CTAs ("Add!" + "Take away!") when subtraction is enabled. A "Numbers!" CTA below routes to `/numbers`.
-- `play.tsx` — Game loop. Reads `?op=add|sub`. Resets streak when `op` changes. Fires haptic on every press; plays the success chime on correct answers (gated by `soundsEnabled`).
+- `play.tsx` — Game loop. Reads `?op=add|sub`. Resets streak when `op` changes. Plays the success chime on correct answers (gated by `soundCorrectEnabled`) and a soft "uh-oh" chime on wrong ones (gated by `soundWrongEnabled`). Haptics use distinct `NotificationFeedbackType.Success` vs `.Error` patterns, each gated by their own flag (`hapticCorrectEnabled`, `hapticWrongEnabled`).
 - `numbers.tsx` — 5×2 grid of 1–10. Each tile fires a haptic and `Speech.speak(value, { language: getSpeechLocale() })`.
 - `settings.tsx` — Modal. Subtraction toggle, Sounds toggle, "more levels coming soon" card.
 
@@ -47,9 +47,9 @@ Other commands:
 `lib/`:
 
 - `problems.ts` — Pure `generateProblem(op, rng?)`. `op: 'add' | 'sub'`. Constraints keep the answer in `0..10`. Distractors are nearby integers, shuffled, unique. Tested in `lib/__tests__/problems.test.ts` with a seeded RNG.
-- `settings.ts` — `SettingsProvider` + `useSettings()`. Storage key: `numo.settings.v1`. Shape: `{ subtractionEnabled, soundsEnabled }`.
+- `settings.ts` — `SettingsProvider` + `useSettings()`. Storage key: `numo.store.v4` (multi-user). Per-user settings carry the page configs, language override, and four independent feedback flags: `soundCorrectEnabled` (defaults on), `soundWrongEnabled`, `hapticCorrectEnabled`, `hapticWrongEnabled` (all default off). `soundCorrectEnabled` also gates TTS reading of problems aloud, so it acts as the master "Numo speaks" switch.
 - `i18n.ts` — i18n-js instance. Auto-selects locale on import. Exports `t(key, options?)` and `getSpeechLocale()`.
-- `sounds.ts` — `useSuccessSound()` hook. Wraps `expo-audio`'s `useAudioPlayer`. Respects `soundsEnabled`. Failures swallowed.
+- `sounds.ts` — `useSuccessSound()` and `useWrongSound()` hooks. Wrap `expo-audio`'s `useAudioPlayer`. Respect `soundCorrectEnabled` and `soundWrongEnabled`. Failures swallowed.
 
 `constants/theme.ts` — Purple palette (`primary`, `accent`, `correct`, `wrong`, etc.) on both `light` and `dark`. Plus `Fonts` (rounded for kid-friendly look).
 

@@ -17,7 +17,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { getSpeechLocale, useT } from '@/lib/i18n';
 import { generateProblem, type Problem } from '@/lib/problems';
 import { useSettings } from '@/lib/settings';
-import { useSuccessSound } from '@/lib/sounds';
+import { useSuccessSound, useWrongSound } from '@/lib/sounds';
 
 const NEXT_DELAY_MS = 2800;
 const WRONG_RESET_MS = 500;
@@ -61,13 +61,17 @@ export default function PlayScreen() {
   );
 
   const playSuccess = useSuccessSound();
+  const playWrong = useWrongSound();
 
   const nextTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrongTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // TTS reading the problem and answer rides on the "sound on correct"
+  // toggle — that one defaults on and acts as the master "Numo speaks"
+  // switch, mirroring the pre-split single Sounds toggle.
   const speak = useCallback(
     (phrase: string) => {
-      if (!settings.soundsEnabled) return;
+      if (!settings.soundCorrectEnabled) return;
       try {
         Speech.stop();
         Speech.speak(phrase, { language: getSpeechLocale() });
@@ -75,7 +79,7 @@ export default function PlayScreen() {
         // No TTS backend (e.g., web on some browsers) — silent fallback.
       }
     },
-    [settings.soundsEnabled],
+    [settings.soundCorrectEnabled],
   );
 
   // Reset the round when the mode or its config changes — render-time
@@ -124,8 +128,6 @@ export default function PlayScreen() {
     (value: number) => {
       if (correctRevealed) return;
 
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-
       const right = value === problem.answer;
 
       // Only the very first answer for this problem counts towards stats —
@@ -136,6 +138,9 @@ export default function PlayScreen() {
       }
 
       if (right) {
+        if (settings.hapticCorrectEnabled) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        }
         setCorrectRevealed(true);
         setStreak((s) => {
           const next = Math.min(s + 1, 5);
@@ -148,6 +153,10 @@ export default function PlayScreen() {
         if (nextTimer.current) clearTimeout(nextTimer.current);
         nextTimer.current = setTimeout(nextProblem, NEXT_DELAY_MS);
       } else {
+        if (settings.hapticWrongEnabled) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+        }
+        playWrong();
         setStreak((s) => Math.max(s - 1, 0));
         setWrongChoice(value);
         if (wrongTimer.current) clearTimeout(wrongTimer.current);
@@ -159,10 +168,13 @@ export default function PlayScreen() {
       problem,
       nextProblem,
       playSuccess,
+      playWrong,
       speak,
       firstAnswerLogged,
       incrementStats,
       op,
+      settings.hapticCorrectEnabled,
+      settings.hapticWrongEnabled,
     ],
   );
 

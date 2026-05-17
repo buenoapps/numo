@@ -20,7 +20,14 @@ export type PageConfig = {
 
 export type PerUserSettings = {
   pages: Record<PageKey, PageConfig>;
-  soundsEnabled: boolean;
+  /** Play the success chime + read problems/answers aloud on a correct answer. */
+  soundCorrectEnabled: boolean;
+  /** Play a soft "uh-oh" chime on a wrong answer. */
+  soundWrongEnabled: boolean;
+  /** Vibrate (success pattern) on a correct answer. */
+  hapticCorrectEnabled: boolean;
+  /** Vibrate (error pattern) on a wrong answer. */
+  hapticWrongEnabled: boolean;
   languageOverride: LocaleOverride;
 };
 
@@ -50,7 +57,12 @@ const DEFAULT_PER_USER_SETTINGS: PerUserSettings = {
     add: { enabled: true, includeZero: true, until: 10 },
     sub: { enabled: false, includeZero: true, until: 10 },
   },
-  soundsEnabled: true,
+  // Only the encouraging "correct" chime is on by default — kids stay
+  // motivated without the app shaming a wrong answer with sound or buzz.
+  soundCorrectEnabled: true,
+  soundWrongEnabled: false,
+  hapticCorrectEnabled: false,
+  hapticWrongEnabled: false,
   languageOverride: 'device',
 };
 
@@ -72,8 +84,17 @@ function mergePageConfig(
 function mergeSettings(partial: Partial<PerUserSettings> | undefined): PerUserSettings {
   const fallback = DEFAULT_PER_USER_SETTINGS;
   if (!partial) return fallback;
+  // Pre-split-feedback payloads used a single `soundsEnabled` boolean. Honour
+  // it as the seed for the new "sound on correct" flag so parents who had
+  // sounds off don't suddenly hear the chime after upgrading.
+  const legacySounds = (partial as Partial<PerUserSettings> & { soundsEnabled?: boolean })
+    .soundsEnabled;
   return {
-    soundsEnabled: partial.soundsEnabled ?? fallback.soundsEnabled,
+    soundCorrectEnabled:
+      partial.soundCorrectEnabled ?? legacySounds ?? fallback.soundCorrectEnabled,
+    soundWrongEnabled: partial.soundWrongEnabled ?? fallback.soundWrongEnabled,
+    hapticCorrectEnabled: partial.hapticCorrectEnabled ?? fallback.hapticCorrectEnabled,
+    hapticWrongEnabled: partial.hapticWrongEnabled ?? fallback.hapticWrongEnabled,
     languageOverride: partial.languageOverride ?? fallback.languageOverride,
     pages: {
       listen: mergePageConfig(fallback.pages.listen, partial.pages?.listen),
@@ -136,7 +157,10 @@ type SettingsContextValue = {
 
   // Active-user mutations
   setPageConfig: (page: PageKey, patch: Partial<PageConfig>) => void;
-  setSoundsEnabled: (enabled: boolean) => void;
+  setSoundCorrectEnabled: (enabled: boolean) => void;
+  setSoundWrongEnabled: (enabled: boolean) => void;
+  setHapticCorrectEnabled: (enabled: boolean) => void;
+  setHapticWrongEnabled: (enabled: boolean) => void;
   setLanguageOverride: (override: LocaleOverride) => void;
   setMonster: (monster: Monster) => void;
   /** Increment a first-attempt stat for the active user. */
@@ -229,8 +253,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         },
       })),
 
-    setSoundsEnabled: (enabled) =>
-      updateActive((u) => ({ ...u, settings: { ...u.settings, soundsEnabled: enabled } })),
+    setSoundCorrectEnabled: (enabled) =>
+      updateActive((u) => ({ ...u, settings: { ...u.settings, soundCorrectEnabled: enabled } })),
+
+    setSoundWrongEnabled: (enabled) =>
+      updateActive((u) => ({ ...u, settings: { ...u.settings, soundWrongEnabled: enabled } })),
+
+    setHapticCorrectEnabled: (enabled) =>
+      updateActive((u) => ({ ...u, settings: { ...u.settings, hapticCorrectEnabled: enabled } })),
+
+    setHapticWrongEnabled: (enabled) =>
+      updateActive((u) => ({ ...u, settings: { ...u.settings, hapticWrongEnabled: enabled } })),
 
     setLanguageOverride: (override) => {
       applyLocale(override);
